@@ -16,6 +16,7 @@
 
 #include "local_mdns.h"
 #include "server.h"
+#include "camera.h"
 
 void wifi_init_sta(void);
 

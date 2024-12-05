@@ -1,7 +1,7 @@
 #include "wifi.h"
 
 #define WIFI_SSID "POCO"
-#define WIFI_PASS "Bruh1234!"
+#define WIFI_PASS "12345678"
 #define MAXIMUM_RETRY 5
 
 static EventGroupHandle_t s_wifi_event_group;
@@ -34,6 +34,7 @@ static void event_handler(void *arg, esp_event_base_t event_base,
 		xEventGroupSetBits(s_wifi_event_group, WIFI_CONNECTED_BIT);
 
 		start_mdns_service();
+		init_camera(PIXFORMAT_JPEG, FRAMESIZE_VGA, 40, 1);
 		start_webserver();
 	}
 }

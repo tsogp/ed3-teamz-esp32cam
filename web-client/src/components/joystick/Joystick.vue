@@ -8,7 +8,7 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount, useTemplateRef, watch } from 'vue';
 import { Joystick } from 'vue-joystick-component';
-import { JoystickMovementType, JOYSTICK_SIZE, BASE_COLOR, STICK_COLOR } from './types';
+import { JoystickMovementType, JOYSTICK_SIZE, BASE_COLOR, STICK_COLOR, AVAILABLE_KEYS } from './types';
 
 const props = defineProps({
   movementType: JoystickMovementType
@@ -19,46 +19,18 @@ const emit = defineEmits([
   "movementEnded"
 ])
 
-const keysPressed = new Set();
+const keysPressed = ref(new Set());
 
 const movementType = ref(props.movementType);
 const joystickRef = useTemplateRef("joystick");
 const joystickEl = ref(null);
 
 const handleKeyDown = (event) => {
-  keysPressed.add(event.key);
-
-  if (movementType.value === JoystickMovementType.OMNIDIRECTIONAL) {
-    if (keysPressed.has('w') && keysPressed.has('d')) {
-      updateButtonPosition((JOYSTICK_SIZE / 2), -(JOYSTICK_SIZE / 2));
-    } else if (keysPressed.has('w') && keysPressed.has('a')) {
-      updateButtonPosition(-(JOYSTICK_SIZE / 2), -(JOYSTICK_SIZE / 2));
-    } else if (keysPressed.has('s') && keysPressed.has('d')) {
-      updateButtonPosition((JOYSTICK_SIZE / 2), (JOYSTICK_SIZE / 2));
-    } else if (keysPressed.has('s') && keysPressed.has('a')) {
-      updateButtonPosition(-(JOYSTICK_SIZE / 2), (JOYSTICK_SIZE / 2));
-    } else {
-      if (keysPressed.has('w')) updateButtonPosition(0, -(JOYSTICK_SIZE / 2));
-      else if (keysPressed.has('s')) updateButtonPosition(0, (JOYSTICK_SIZE / 2));
-      else if (keysPressed.has('a')) updateButtonPosition(-(JOYSTICK_SIZE / 2), 0);
-      else if (keysPressed.has('d')) updateButtonPosition((JOYSTICK_SIZE / 2), 0);
-    }
-  } else if (movementType.value === JoystickMovementType.ROTATIONAL) {
-    if (keysPressed.has('ArrowUp') && keysPressed.has('ArrowRight')) {
-      updateButtonPosition((JOYSTICK_SIZE / 2), -(JOYSTICK_SIZE / 2));
-    } else if (keysPressed.has('ArrowUp') && keysPressed.has('ArrowLeft')) {
-      updateButtonPosition(-(JOYSTICK_SIZE / 2), -(JOYSTICK_SIZE / 2));
-    } else if (keysPressed.has('ArrowDown') && keysPressed.has('ArrowRight')) {
-      updateButtonPosition((JOYSTICK_SIZE / 2), (JOYSTICK_SIZE / 2));
-    } else if (keysPressed.has('ArrowDown') && keysPressed.has('ArrowLeft')) {
-      updateButtonPosition(-(JOYSTICK_SIZE / 2), (JOYSTICK_SIZE / 2));
-    } else {
-      if (keysPressed.has('ArrowUp')) updateButtonPosition(0, -(JOYSTICK_SIZE / 2));
-      else if (keysPressed.has('ArrowDown')) updateButtonPosition(0, (JOYSTICK_SIZE / 2));
-      else if (keysPressed.has('ArrowLeft')) updateButtonPosition(-(JOYSTICK_SIZE / 2), 0);
-      else if (keysPressed.has('ArrowRight')) updateButtonPosition((JOYSTICK_SIZE / 2), 0);
-    }
+  if (!AVAILABLE_KEYS[props.movementType].includes(event.key) || keysPressed.value.has(event.key)) {
+    return;
   }
+
+  keysPressed.value.add(event.key);
 };
 
 const normalizeKeyboardDirection = (x, y) => {
@@ -66,13 +38,15 @@ const normalizeKeyboardDirection = (x, y) => {
 }
 
 const handleKeyUp = (event) => {
-  keysPressed.delete(event.key);
-
-  if (keysPressed.size === 0) {
-    joystickEl.value.style.transform = "";
+  if (!keysPressed.value.has(event.key)) {
+    return;
   }
 
-  emit("movementEnded", { x: 0, y: 0 });
+  keysPressed.value.delete(event.key);
+  if (keysPressed.value.size === 0) {
+    joystickEl.value.style.transform = "";
+    emit("movementEnded", { x: 0, y: 0 });
+  }
 }
 
 const updateButtonPosition = (deltaX, deltaY) => {
@@ -88,6 +62,40 @@ const updateButtonPosition = (deltaX, deltaY) => {
 watch(joystickRef, (newValue) => {
   joystickEl.value = newValue.$el.querySelector('button')
 });
+
+watch(keysPressed.value, (newValue) => {
+  if (movementType.value === JoystickMovementType.OMNIDIRECTIONAL) {
+    if (keysPressed.value.has('w') && keysPressed.value.has('d')) {
+      updateButtonPosition((JOYSTICK_SIZE / 2), -(JOYSTICK_SIZE / 2));
+    } else if (keysPressed.value.has('w') && keysPressed.value.has('a')) {
+      updateButtonPosition(-(JOYSTICK_SIZE / 2), -(JOYSTICK_SIZE / 2));
+    } else if (keysPressed.value.has('s') && keysPressed.value.has('d')) {
+      updateButtonPosition((JOYSTICK_SIZE / 2), (JOYSTICK_SIZE / 2));
+    } else if (keysPressed.value.has('s') && keysPressed.value.has('a')) {
+      updateButtonPosition(-(JOYSTICK_SIZE / 2), (JOYSTICK_SIZE / 2));
+    } else {
+      if (keysPressed.value.has('w')) updateButtonPosition(0, -(JOYSTICK_SIZE / 2));
+      else if (keysPressed.value.has('s')) updateButtonPosition(0, (JOYSTICK_SIZE / 2));
+      else if (keysPressed.value.has('a')) updateButtonPosition(-(JOYSTICK_SIZE / 2), 0);
+      else if (keysPressed.value.has('d')) updateButtonPosition((JOYSTICK_SIZE / 2), 0);
+    }
+  } else if (movementType.value === JoystickMovementType.ROTATIONAL) {
+    if (keysPressed.value.has('ArrowUp') && keysPressed.value.has('ArrowRight')) {
+      updateButtonPosition((JOYSTICK_SIZE / 2), -(JOYSTICK_SIZE / 2));
+    } else if (keysPressed.value.has('ArrowUp') && keysPressed.value.has('ArrowLeft')) {
+      updateButtonPosition(-(JOYSTICK_SIZE / 2), -(JOYSTICK_SIZE / 2));
+    } else if (keysPressed.value.has('ArrowDown') && keysPressed.value.has('ArrowRight')) {
+      updateButtonPosition((JOYSTICK_SIZE / 2), (JOYSTICK_SIZE / 2));
+    } else if (keysPressed.value.has('ArrowDown') && keysPressed.value.has('ArrowLeft')) {
+      updateButtonPosition(-(JOYSTICK_SIZE / 2), (JOYSTICK_SIZE / 2));
+    } else {
+      if (keysPressed.value.has('ArrowUp')) updateButtonPosition(0, -(JOYSTICK_SIZE / 2));
+      else if (keysPressed.value.has('ArrowDown')) updateButtonPosition(0, (JOYSTICK_SIZE / 2));
+      else if (keysPressed.value.has('ArrowLeft')) updateButtonPosition(-(JOYSTICK_SIZE / 2), 0);
+      else if (keysPressed.value.has('ArrowRight')) updateButtonPosition((JOYSTICK_SIZE / 2), 0);
+    }
+  }
+})
 
 onMounted(() => {
   window.addEventListener('keydown', handleKeyDown);

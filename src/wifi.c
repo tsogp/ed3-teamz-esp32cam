@@ -34,7 +34,7 @@ static void event_handler(void *arg, esp_event_base_t event_base,
 		xEventGroupSetBits(s_wifi_event_group, WIFI_CONNECTED_BIT);
 
 		start_mdns_service();
-		init_camera(PIXFORMAT_JPEG, FRAMESIZE_VGA, 40, 1);
+		init_camera();
 		start_webserver();
 	}
 }

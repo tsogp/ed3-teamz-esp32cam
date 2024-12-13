@@ -1,8 +1,7 @@
 #include "camera.h"
 
-esp_err_t init_camera(pixformat_t pixel_format, framesize_t frame_size,
-		      int jpeg_quality, size_t fb_count) {
-	camera_config_t camera_config = { 
+// TODO: investigate jpeg_quality, fb_count, grab_mode
+static camera_config_t camera_config = { 
                         .pin_pwdn = CAM_PIN_PWDN,
 					  .pin_reset = CAM_PIN_RESET,
 					  .pin_xclk = CAM_PIN_XCLK,
@@ -25,17 +24,47 @@ esp_err_t init_camera(pixformat_t pixel_format, framesize_t frame_size,
 					  .ledc_timer = LEDC_TIMER_0,
 					  .ledc_channel = LEDC_CHANNEL_0,
 
-					  .pixel_format = pixel_format,
-					  .frame_size = frame_size,
+					  .pixel_format = PIXFORMAT_JPEG,
 
-					  .jpeg_quality = jpeg_quality,
-					  .fb_count = fb_count,
+					  .jpeg_quality = 60,
+					  .fb_count = 1,
                       .fb_location = CAMERA_FB_IN_DRAM,
 					  .grab_mode = CAMERA_GRAB_WHEN_EMPTY };
+
+// TODO: Load default values from NVS
+static framesize_t camera_resolution = FRAMESIZE_VGA;
+
+static bool inject_new_camera_resolution(const framesize_t fsz) {
+	bool res_changed = false;
+	if (camera_resolution != fsz) {
+		camera_resolution = fsz;
+		res_changed = false;
+	}
+
+	return res_changed;
+}
+
+esp_err_t init_camera() {
+	camera_config.frame_size = camera_resolution;
 
 	esp_err_t err = esp_camera_init(&camera_config);
 	if (err != ESP_OK) {
 		return err;
+	}
+
+	return ESP_OK;
+}
+
+esp_err_t reinit_camera(framesize_t frame_size) {
+	bool cfg_changed = inject_new_camera_resolution(frame_size);
+
+	if (cfg_changed) {
+		esp_err_t err = esp_camera_deinit();
+		if (err != ESP_OK) {
+			return err;
+		}
+
+		return init_camera(frame_size);
 	}
 
 	return ESP_OK;

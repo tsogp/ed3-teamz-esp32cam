@@ -5,6 +5,8 @@
 #include "esp_camera.h"
 #include "esp_timer.h"
 #include "esp_log.h"
+#include "camera.h"
+#include "cJSON.h"
 
 void start_webserver(void);
 void stop_webserver(void);

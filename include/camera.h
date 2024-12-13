@@ -23,7 +23,7 @@
 
 #define CONFIG_XCLK_FREQ 20000000
 
-esp_err_t init_camera(pixformat_t pixel_format, framesize_t frame_size,
-		      int jpeg_quality, size_t fb_count);
+esp_err_t init_camera();
+esp_err_t reinit_camera(framesize_t frame_size);
 
 #endif // __CAMERA_H__

@@ -10,7 +10,7 @@ class ApiCaller {
     const options = {
       method,
       headers: {
-        'Content-Type': 'application/json',
+        ...(method === 'OPTIONS' ? { 'Content-Type': 'application/json' } : {}),
         ...headers,
       },
     };
@@ -23,6 +23,11 @@ class ApiCaller {
       const response = await fetch(url, options);
 
       if (!response.ok) {
+        if (response.status === 405) {
+          await this.options(endpoint);
+          return await this.request(endpoint, method, data, headers);
+        }
+
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
 
@@ -39,6 +44,10 @@ class ApiCaller {
 
   async post(endpoint, data, headers = {}) {
     return this.request(endpoint, 'POST', data, headers);
+  }
+
+  async options(endpoint) {
+    return this.request(endpoint, 'OPTIONS', null, {});
   }
 }
 

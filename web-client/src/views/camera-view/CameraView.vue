@@ -1,5 +1,5 @@
 <template>
-  <div class="relative w-full h-screen bg-gray-900">
+  <div class="relative w-[700px] h-[700px] bg-gray-900">
     <div v-if="hasError" class="absolute inset-0 flex flex-col items-center justify-center space-y-4 text-white">
       <div class="animate-spin rounded-full h-32 w-32 border-t-4 border-blue-500"></div>
       <p class="text-lg font-semibold">Error loading stream. Retrying...</p>

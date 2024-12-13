@@ -3,4 +3,5 @@
   "files.associations": {
     "mdns.h": "c"
   },
+  "idf.port": "/dev/ttyUSB0",
 }

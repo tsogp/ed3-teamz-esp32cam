@@ -69,7 +69,7 @@ esp_err_t init_camera() {
 
 // TODO: fix into cleaner implementation
 int change_camera_resolution(framesize_t frame_size) {
-	// frame_size is bigger then FRAMESIZE_UXGA, 
+	// frame_size is bigger then FRAMESIZE_UXGA,
 	// which is the maximum quality supported for OX2640
 	if (frame_size > 15) {
 		return 1;
@@ -84,7 +84,7 @@ int change_camera_resolution(framesize_t frame_size) {
 }
 
 int change_camera_jpeg_quality(int quality) {
-	// Only qualities between 10 and 63 are 
+	// Only qualities between 10 and 63 are
 	// supported in OX2640
 	if (quality < 10 || quality > 63) {
 		return 1;

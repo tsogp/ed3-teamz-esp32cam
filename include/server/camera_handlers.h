@@ -1,0 +1,12 @@
+#ifndef __CAMERA_HANDLERS_H__
+#define __CAMERA_HANDLERS_H__
+
+#include <esp_err.h>
+#include <esp_log.h>
+#include <esp_timer.h>
+#include <esp_http_server.h>
+#include <esp_camera.h>
+
+esp_err_t stream_jpg(httpd_req_t *req);
+
+#endif // __CAMERA_HANDLERS_H__

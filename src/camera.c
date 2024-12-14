@@ -1,5 +1,31 @@
 #include "camera.h"
 
+#define TAG "CAMERA.H"
+
+#define CAM_PIN_PWDN 32
+#define CAM_PIN_RESET -1
+#define CAM_PIN_XCLK 0
+#define CAM_PIN_SIOD 26
+#define CAM_PIN_SIOC 27
+
+#define CAM_PIN_D7 35
+#define CAM_PIN_D6 34
+#define CAM_PIN_D5 39
+#define CAM_PIN_D4 36
+#define CAM_PIN_D3 21
+#define CAM_PIN_D2 19
+#define CAM_PIN_D1 18
+#define CAM_PIN_D0 5
+#define CAM_PIN_VSYNC 25
+#define CAM_PIN_HREF 23
+#define CAM_PIN_PCLK 22
+
+#define CONFIG_XCLK_FREQ 20000000
+
+// TODO: Load default values from NVS
+static framesize_t camera_resolution = FRAMESIZE_VGA;
+static int jpeg_quality = 30;
+
 // TODO: investigate jpeg_quality, fb_count, grab_mode
 static camera_config_t camera_config = { .pin_pwdn = CAM_PIN_PWDN,
 					 .pin_reset = CAM_PIN_RESET,
@@ -25,26 +51,13 @@ static camera_config_t camera_config = { .pin_pwdn = CAM_PIN_PWDN,
 
 					 .pixel_format = PIXFORMAT_JPEG,
 
-					 .jpeg_quality = 60,
 					 .fb_count = 1,
 					 .fb_location = CAMERA_FB_IN_DRAM,
 					 .grab_mode = CAMERA_GRAB_WHEN_EMPTY };
 
-// TODO: Load default values from NVS
-static framesize_t camera_resolution = FRAMESIZE_VGA;
-
-static bool inject_new_camera_resolution(const framesize_t fsz) {
-	bool res_changed = false;
-	if (camera_resolution != fsz) {
-		camera_resolution = fsz;
-		res_changed = false;
-	}
-
-	return res_changed;
-}
-
 esp_err_t init_camera() {
 	camera_config.frame_size = camera_resolution;
+	camera_config.jpeg_quality = jpeg_quality;
 
 	esp_err_t err = esp_camera_init(&camera_config);
 	if (err != ESP_OK) {
@@ -55,34 +68,32 @@ esp_err_t init_camera() {
 }
 
 // TODO: fix into cleaner implementation
-esp_err_t reinit_camera(framesize_t frame_size) {
+int change_camera_resolution(framesize_t frame_size) {
+	// frame_size is bigger then FRAMESIZE_UXGA, 
+	// which is the maximum quality supported for OX2640
+	if (frame_size > 15) {
+		return 1;
+	} else if (frame_size == camera_resolution) {
+		return 2;
+	}
+
 	sensor_t *sensor = esp_camera_sensor_get();
+	int ret = sensor->set_framesize(sensor, frame_size);
+	camera_resolution = frame_size;
+	return ret;
+}
 
-	ESP_LOGW("CAMERA", "got framesize %d", frame_size);
+int change_camera_jpeg_quality(int quality) {
+	// Only qualities between 10 and 63 are 
+	// supported in OX2640
+	if (quality < 10 || quality > 63) {
+		return 1;
+	} else if (quality == jpeg_quality) {
+		return 2;
+	}
 
-	sensor->set_framesize(sensor, frame_size);
-	// vTaskDelay(pdMS_TO_TICKS(100));
-	// sensor->set_aec2(sensor, false);
-	// sensor->set_exposure_ctrl(sensor, false);
-	// vTaskDelay(pdMS_TO_TICKS(200));
-
-	// flush
-	// for (int i = 0; i < camera_config.fb_count; i++) {
-	// 	int retries = 3;
-	// 	while (--retries) {
-	// 		camera_fb_t *fb = esp_camera_fb_get();
-	// 		if (fb) {
-	// 			esp_camera_fb_return(fb);
-	// 			retries = 0;
-	// 		} else {
-	// 			ESP_LOGW(
-	// 				"CAMERA",
-	// 				"camera returned null fb while flushing %d",
-	// 				i);
-	// 			vTaskDelay(pdMS_TO_TICKS(500));
-	// 		}
-	// 	}
-	// }
-
-	return ESP_OK;
+	sensor_t *sensor = esp_camera_sensor_get();
+	int ret = sensor->set_quality(sensor, quality);
+	jpeg_quality = quality;
+	return ret;
 }

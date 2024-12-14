@@ -6,7 +6,10 @@
 #include <esp_timer.h>
 #include <esp_http_server.h>
 #include <esp_camera.h>
+#include <cJSON.h>
+#include "camera.h"
 
 esp_err_t stream_jpg(httpd_req_t *req);
+esp_err_t reload_camera_config(httpd_req_t *req);
 
 #endif // __CAMERA_HANDLERS_H__

@@ -151,88 +151,6 @@ static esp_err_t stream_jpg_httpd_handler(httpd_req_t *req) {
 	}
 }
 
-static esp_err_t reload_camera_config_httpd_handler(httpd_req_t *req) {
-	char buffer[256];
-	size_t total_len = req->content_len;
-	int received = 0;
-
-	if (total_len > sizeof(buffer)) {
-		ESP_LOGE(TAG, "Content length too large");
-		httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR,
-				    "Content length too large");
-		return ESP_FAIL;
-	}
-
-	ESP_LOGE(TAG, "Starting receiving new camera config");
-
-	while (received < total_len) {
-		int ret = httpd_req_recv(req, buffer + received,
-					 total_len - received);
-		esp_err_t post_recv_ok = post_body_recv_error_check(req, ret);
-		if (post_recv_ok != ESP_OK) {
-			return post_recv_ok;
-		}
-		received += ret;
-	}
-
-	// Ensure the buffer is null-terminated for safe JSON parsing
-	buffer[total_len] = '\0';
-
-	cJSON *json = cJSON_Parse(buffer);
-	if (!json) {
-		ESP_LOGE(TAG, "Invalid JSON");
-		httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Invalid JSON");
-		return ESP_FAIL;
-	}
-
-	cJSON *rs_field = cJSON_GetObjectItem(json, "rs");
-	if (cJSON_IsNumber(rs_field)) {
-		int rs = rs_field->valueint;
-
-		if (rs < 0 || rs > 15) {
-			ESP_LOGE(TAG, "Not a valid resolution");
-			cJSON_Delete(json);
-			httpd_resp_send_err(
-				req, HTTPD_400_BAD_REQUEST,
-				"Field is not a valid resolution type");
-			return ESP_FAIL;
-		}
-
-		// TODO: map to actual resolution in the log statement
-		int reload_result = change_camera_resolution((framesize_t)rs);
-		if (reload_result != 0) {
-			ESP_LOGE(TAG, "Could not reload camera config");
-			cJSON_Delete(json);
-			httpd_resp_send_err(req,
-					    HTTPD_500_INTERNAL_SERVER_ERROR,
-					    "Could not reload camera config");
-			return ESP_FAIL;
-		}
-		ESP_LOGI(TAG, "Changed camera resolution to %d", rs);
-	} else {
-		ESP_LOGE(TAG, "Not a valid number");
-		cJSON_Delete(json);
-		httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST,
-				    "Field is not a valid number");
-		return ESP_FAIL;
-	}
-
-	cJSON_Delete(json);
-	httpd_resp_sendstr(req, "Resolution changed successfully");
-	return ESP_OK;
-}
-
-// static esp_err_t reload_camera_config_httpd_handler(httpd_req_t *req) {
-// 	if (queue_request(req, reload_camera_config) == ESP_OK) {
-// 		return ESP_OK;
-// 	} else {
-// 		httpd_resp_set_status(req, "503 Busy");
-// 		httpd_resp_sendstr(
-// 			req, "<div> no workers available. server busy.</div>");
-// 		return ESP_OK;
-// 	}
-// }
-
 esp_err_t options_handler(httpd_req_t *req) {
 	httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
 	httpd_resp_set_hdr(req, "Access-Control-Allow-Methods",
@@ -257,7 +175,7 @@ void start_webserver(void) {
 	static httpd_uri_t camera_config_reloader = {
 		.uri = "/reload-camera-config",
 		.method = HTTP_POST,
-		.handler = reload_camera_config_httpd_handler,
+		.handler = reload_camera_config,
 		.user_ctx = NULL
 	};
 

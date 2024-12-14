@@ -1,6 +1,6 @@
 #include "server/camera_handlers.h"
 
-#define TAG "CAMERA_HANDLERS.C"
+#define TAG "CAMERA_HANDLERS"
 #define PART_BOUNDARY "123456789000000000000987654321"
 
 static const char *_STREAM_CONTENT_TYPE =
@@ -78,4 +78,75 @@ esp_err_t stream_jpg(httpd_req_t *req) {
 
 	last_frame = 0;
 	return res;
+}
+
+esp_err_t reload_camera_config(httpd_req_t *req) {
+	char buffer[256];
+	size_t total_len = req->content_len;
+	int received = 0;
+
+	if (total_len > sizeof(buffer)) {
+		ESP_LOGE(TAG, "Content length too large");
+		httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR,
+				    "Content length too large");
+		return ESP_FAIL;
+	}
+
+	ESP_LOGE(TAG, "Starting receiving new camera config");
+
+	while (received < total_len) {
+		int ret = httpd_req_recv(req, buffer + received,
+					 total_len - received);
+		esp_err_t post_recv_ok = post_body_recv_error_check(req, ret);
+		if (post_recv_ok != ESP_OK) {
+			return post_recv_ok;
+		}
+		received += ret;
+	}
+
+	// Ensure the buffer is null-terminated for safe JSON parsing
+	buffer[total_len] = '\0';
+
+	cJSON *json = cJSON_Parse(buffer);
+	if (!json) {
+		ESP_LOGE(TAG, "Invalid JSON");
+		httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Invalid JSON");
+		return ESP_FAIL;
+	}
+
+	cJSON *rs_field = cJSON_GetObjectItem(json, "rs");
+	if (cJSON_IsNumber(rs_field)) {
+		int rs = rs_field->valueint;
+
+		if (rs < 0 || rs > 15) {
+			ESP_LOGE(TAG, "Not a valid resolution");
+			cJSON_Delete(json);
+			httpd_resp_send_err(
+				req, HTTPD_400_BAD_REQUEST,
+				"Field is not a valid resolution type");
+			return ESP_FAIL;
+		}
+
+		// TODO: map to actual resolution in the log statement
+		int reload_result = change_camera_resolution((framesize_t)rs);
+		if (reload_result != 0) {
+			ESP_LOGE(TAG, "Could not reload camera config");
+			cJSON_Delete(json);
+			httpd_resp_send_err(req,
+					    HTTPD_500_INTERNAL_SERVER_ERROR,
+					    "Could not reload camera config");
+			return ESP_FAIL;
+		}
+		ESP_LOGI(TAG, "Changed camera resolution to %d", rs);
+	} else {
+		ESP_LOGE(TAG, "Not a valid number");
+		cJSON_Delete(json);
+		httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST,
+				    "Field is not a valid number");
+		return ESP_FAIL;
+	}
+
+	cJSON_Delete(json);
+	httpd_resp_sendstr(req, "Resolution changed successfully");
+	return ESP_OK;
 }

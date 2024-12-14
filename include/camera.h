@@ -2,6 +2,9 @@
 #define __CAMERA_H__
 
 #include "esp_camera.h"
+#include "esp_log.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
 
 #define CAM_PIN_PWDN 32
 #define CAM_PIN_RESET -1

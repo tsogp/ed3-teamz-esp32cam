@@ -18,4 +18,9 @@ const AVAILABLE_RESOLUTIONS = [
   { name: "UXGA (1600x1200)", value: 15 }
 ];
 
-export { AVAILABLE_RESOLUTIONS };
+const AVAILABLE_JPEG_QUALITY = Array.from({ length: 54 }, (_, i) => {
+  const quality = i + 10;
+  return { name: quality, value: quality };
+});
+
+export { AVAILABLE_RESOLUTIONS, AVAILABLE_JPEG_QUALITY };

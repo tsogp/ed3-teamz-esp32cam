@@ -3,14 +3,26 @@ const JoystickMovementType = Object.freeze({
   ROTATIONAL: 1,
 });
 
+const JoystickMovementStatus = Object.freeze({
+  MOVING: 0,
+  STOPPED: 1,
+});
+
 const AVAILABLE_KEYS = [
-  ['w', 'a', 's', 'd'],
-  ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight']
-]
+  ["w", "a", "s", "d"],
+  ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"],
+];
 
 const JOYSTICK_SIZE = 200;
 
 const BASE_COLOR = "black";
-const STICK_COLOR = "purple"; 
+const STICK_COLOR = "purple";
 
-export { JoystickMovementType, JOYSTICK_SIZE, BASE_COLOR, STICK_COLOR, AVAILABLE_KEYS };
+export {
+  JoystickMovementType,
+  JoystickMovementStatus,
+  JOYSTICK_SIZE,
+  BASE_COLOR,
+  STICK_COLOR,
+  AVAILABLE_KEYS,
+};

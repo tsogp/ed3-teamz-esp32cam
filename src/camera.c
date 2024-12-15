@@ -1,6 +1,6 @@
 #include "camera.h"
 
-#define TAG "CAMERA.H"
+#define TAG "CAMERA"
 
 #define CAM_PIN_PWDN 32
 #define CAM_PIN_RESET -1
@@ -21,6 +21,8 @@
 #define CAM_PIN_PCLK 22
 
 #define CONFIG_XCLK_FREQ 20000000
+
+#define FLASH_PIN 4
 
 // TODO: Load default values from NVS
 static framesize_t camera_resolution = FRAMESIZE_VGA;
@@ -51,15 +53,25 @@ static camera_config_t camera_config = { .pin_pwdn = CAM_PIN_PWDN,
 
 					 .pixel_format = PIXFORMAT_JPEG,
 
-					 .fb_count = 1,
+					 .fb_count = 2,
 					 .fb_location = CAMERA_FB_IN_DRAM,
 					 .grab_mode = CAMERA_GRAB_WHEN_EMPTY };
 
 esp_err_t init_camera() {
+	gpio_config_t io_conf = { .pin_bit_mask = (1ULL << FLASH_PIN),
+				  .mode = GPIO_MODE_OUTPUT,
+				  .pull_up_en = GPIO_PULLUP_DISABLE,
+				  .pull_down_en = GPIO_PULLDOWN_DISABLE,
+				  .intr_type = GPIO_INTR_DISABLE };
+	esp_err_t err = gpio_config(&io_conf);
+	if (err != ESP_OK) {
+		return err;
+	}
+
 	camera_config.frame_size = camera_resolution;
 	camera_config.jpeg_quality = jpeg_quality;
 
-	esp_err_t err = esp_camera_init(&camera_config);
+	err = esp_camera_init(&camera_config);
 	if (err != ESP_OK) {
 		return err;
 	}
@@ -79,6 +91,7 @@ int change_camera_resolution(framesize_t frame_size) {
 
 	sensor_t *sensor = esp_camera_sensor_get();
 	int ret = sensor->set_framesize(sensor, frame_size);
+	vTaskDelay(pdMS_TO_TICKS(100));
 	camera_resolution = frame_size;
 	return ret;
 }
@@ -94,6 +107,15 @@ int change_camera_jpeg_quality(int quality) {
 
 	sensor_t *sensor = esp_camera_sensor_get();
 	int ret = sensor->set_quality(sensor, quality);
+	vTaskDelay(pdMS_TO_TICKS(100));
 	jpeg_quality = quality;
+	return ret;
+}
+
+esp_err_t toggle_camera_flash() {
+	int cr = gpio_get_level(FLASH_PIN);
+	ESP_LOGI(TAG, "%d", (cr + 1) % 2);
+	esp_err_t ret = gpio_set_level(FLASH_PIN, (cr + 1) % 2);
+	vTaskDelay(pdMS_TO_TICKS(100));
 	return ret;
 }

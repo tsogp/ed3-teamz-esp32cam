@@ -5,8 +5,8 @@
 static httpd_handle_t server = NULL;
 
 #define ASYNC_WORKER_TASK_PRIORITY 5
-#define CONFIG_EXAMPLE_MAX_ASYNC_REQUESTS 4
-#define ASYNC_WORKER_TASK_STACK_SIZE 2048
+#define CONFIG_EXAMPLE_MAX_ASYNC_REQUESTS 2
+#define ASYNC_WORKER_TASK_STACK_SIZE 8192
 
 static QueueHandle_t request_queue;
 
@@ -116,7 +116,7 @@ void start_workers(void) {
 	for (int i = 0; i < CONFIG_EXAMPLE_MAX_ASYNC_REQUESTS; i++) {
 		bool success =
 			xTaskCreate(worker_task, "async_req_worker",
-				    8192, // stack size
+				    ASYNC_WORKER_TASK_STACK_SIZE, // stack size
 				    (void *)0, // argument
 				    ASYNC_WORKER_TASK_PRIORITY, // priority
 				    &worker_handles[i]);
@@ -126,18 +126,6 @@ void start_workers(void) {
 			continue;
 		}
 	}
-}
-
-static esp_err_t post_body_recv_error_check(httpd_req_t *req, int ret) {
-	if (ret <= 0) {
-		if (ret == HTTPD_SOCK_ERR_TIMEOUT) {
-			httpd_resp_send_408(req);
-		}
-
-		return ESP_FAIL;
-	}
-
-	return ESP_OK;
 }
 
 static esp_err_t stream_jpg_httpd_handler(httpd_req_t *req) {
@@ -172,12 +160,31 @@ void start_webserver(void) {
 						      stream_jpg_httpd_handler,
 					      .user_ctx = NULL };
 
-	static httpd_uri_t camera_config_reloader = {
-		.uri = "/reload-camera-config",
+	static httpd_uri_t flash_toggler = { .uri = "/toggle-flash",
+					     .method = HTTP_GET,
+					     .handler = toggle_camera_flash,
+					     .user_ctx = NULL };
+
+	static httpd_uri_t camera_resolution_reloader = {
+		.uri = "/reload-camera-resolution",
 		.method = HTTP_POST,
-		.handler = reload_camera_config,
+		.handler = reload_camera_resolution,
 		.user_ctx = NULL
 	};
+
+	static httpd_uri_t camera_quality_reloader = {
+		.uri = "/reload-camera-quality",
+		.method = HTTP_POST,
+		.handler = reload_camera_quality,
+		.user_ctx = NULL
+	};
+
+	static httpd_uri_t controls_handler = { .uri = "/controls",
+						.method = HTTP_GET,
+						.handler =
+							controls_data_handler,
+						.user_ctx = NULL,
+						.is_websocket = true };
 
 	static httpd_uri_t options_uri = { .uri = "/",
 					   .method = HTTP_OPTIONS,
@@ -187,7 +194,10 @@ void start_webserver(void) {
 	if (httpd_start(&server, &config) == ESP_OK) {
 		httpd_register_uri_handler(server, &options_uri);
 		httpd_register_uri_handler(server, &video_streamer);
-		httpd_register_uri_handler(server, &camera_config_reloader);
+		httpd_register_uri_handler(server, &camera_resolution_reloader);
+		httpd_register_uri_handler(server, &camera_quality_reloader);
+		// httpd_register_uri_handler(server, &flash_toggler);
+		httpd_register_uri_handler(server, &controls_handler);
 	}
 }
 

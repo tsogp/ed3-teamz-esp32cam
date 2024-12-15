@@ -8,7 +8,9 @@
 #include <freertos/FreeRTOS.h>
 #include <freertos/semphr.h>
 #include "camera.h"
+
 #include "server/camera_handlers.h"
+#include "server/ws_handlers.h"
 
 void start_webserver(void);
 void stop_webserver(void);

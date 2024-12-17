@@ -1,8 +1,8 @@
 <template>
   <Joystick ref="joystick" :size="JOYSTICK_SIZE" :stick-size="JOYSTICK_SIZE / 2" :base-color="BASE_COLOR"
     :stick-color="STICK_COLOR" :throttle="100"
-    @stop="$emit('movementEnded', { x: Number(($event?.x ?? 0).toFixed(6)), y: Number(($event?.y ?? 0).toFixed(6)) })"
-    @move="$emit('movementChanged', { x: Number(($event?.x ?? 0).toFixed(6)), y: Number(($event?.y ?? 0).toFixed(6)) })" />
+    @stop="$emit('movementEnded', { x: Number(($event?.x ?? 0).toFixed(2)), y: Number(($event?.y ?? 0).toFixed(2)) })"
+    @move="$emit('movementChanged', { x: Number(($event?.x ?? 0).toFixed(2)), y: Number(($event?.y ?? 0).toFixed(2)) })" />
 </template>
 
 <script setup>

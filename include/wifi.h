@@ -15,6 +15,7 @@
 #include "lwip/sys.h"
 
 #include "local_mdns.h"
+#include "uart.h"
 #include "server.h"
 #include "camera.h"
 

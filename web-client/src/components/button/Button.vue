@@ -1,7 +1,7 @@
 <template>
   <button
     class="inline-flex justify-center items-center cursor-pointer border-2 border-black text-black hover:bg-slate-50 rounded-lg p-2"
-    @click="handleClick">
+    @click="$emit('click')">
     <span>{{ text }}</span>
   </button>
 </template>
@@ -16,9 +16,5 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits();
-
-const handleClick = () => {
-  emit('click');
-};
+const emit = defineEmits(['click']);
 </script>

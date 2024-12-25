@@ -34,6 +34,7 @@ static void event_handler(void *arg, esp_event_base_t event_base,
 		xEventGroupSetBits(s_wifi_event_group, WIFI_CONNECTED_BIT);
 
 		// TODO: start in async manner with events
+		init_uart();
 		start_mdns_service();
 		init_camera();
 		start_workers();

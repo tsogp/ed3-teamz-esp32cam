@@ -65,9 +65,6 @@ esp_err_t stream_jpg(httpd_req_t *req) {
 		last_frame = fr_end;
 		frame_time /= 1000;
 		trigger_async_send(1000.0 / (uint32_t)frame_time);
-		ESP_LOGI(TAG, "MJPG: %luKB %lums (%.1ffps)",
-			 (uint32_t)(_jpg_buf_len / 1024), (uint32_t)frame_time,
-			 1000.0 / (uint32_t)frame_time);
 	}
 
 	last_frame = 0;
@@ -86,8 +83,8 @@ static esp_err_t post_body_recv_error_check(httpd_req_t *req, int ret) {
 	return ESP_OK;
 }
 
-esp_err_t reload_camera_resolution(httpd_req_t *req) {
-	char buffer[64];
+esp_err_t reload_camera_config(httpd_req_t *req) {
+	char buffer[32];
 	size_t total_len = req->content_len;
 	int received = 0;
 
@@ -116,116 +113,83 @@ esp_err_t reload_camera_resolution(httpd_req_t *req) {
 		return ESP_FAIL;
 	}
 
+	bool resolution_updated = false;
+	bool quality_updated = false;
+
+	// Handle resolution field
 	cJSON *rs_field = cJSON_GetObjectItem(json, "rs");
-	if (cJSON_IsNumber(rs_field)) {
-		int rs = rs_field->valueint;
+	if (rs_field) {
+		if (cJSON_IsNumber(rs_field)) {
+			int rs = rs_field->valueint;
 
-		if (rs < 0 || rs > 15) {
-			ESP_LOGE(TAG, "Not a valid resolution");
+			if (rs < 0 || rs > 15) {
+				ESP_LOGE(TAG, "Invalid resolution value");
+				cJSON_Delete(json);
+				httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST,
+						    "Invalid resolution value");
+				return ESP_FAIL;
+			}
+
+			if (change_camera_resolution((framesize_t)rs) != 0) {
+				ESP_LOGE(TAG, "Failed to update resolution");
+				cJSON_Delete(json);
+				httpd_resp_send_err(
+					req, HTTPD_500_INTERNAL_SERVER_ERROR,
+					"Failed to update resolution");
+				return ESP_FAIL;
+			}
+			resolution_updated = true;
+		} else {
+			ESP_LOGE(TAG, "Resolution field is not a valid number");
 			cJSON_Delete(json);
 			httpd_resp_send_err(
 				req, HTTPD_400_BAD_REQUEST,
-				"Field is not a valid resolution type");
+				"Resolution field is not a valid number");
 			return ESP_FAIL;
 		}
-
-		// TODO: map to actual resolution in the log statement
-		int reload_result = change_camera_resolution((framesize_t)rs);
-		if (reload_result != 0) {
-			ESP_LOGE(TAG, "Could not reload camera config");
-			cJSON_Delete(json);
-			httpd_resp_send_err(req,
-					    HTTPD_500_INTERNAL_SERVER_ERROR,
-					    "Could not reload camera config");
-			return ESP_FAIL;
-		}
-	} else {
-		ESP_LOGE(TAG, "Not a valid number");
-		cJSON_Delete(json);
-		httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST,
-				    "Field is not a valid number");
-		return ESP_FAIL;
 	}
 
-	cJSON_Delete(json);
-	httpd_resp_sendstr(req, "Resolution changed successfully");
-	return ESP_OK;
-}
-
-esp_err_t reload_camera_quality(httpd_req_t *req) {
-	char buffer[64];
-	size_t total_len = req->content_len;
-	int received = 0;
-
-	if (total_len > sizeof(buffer)) {
-		httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR,
-				    "Content length too large");
-		return ESP_FAIL;
-	}
-
-	while (received < total_len) {
-		int ret = httpd_req_recv(req, buffer + received,
-					 total_len - received);
-		esp_err_t post_recv_ok = post_body_recv_error_check(req, ret);
-		if (post_recv_ok != ESP_OK) {
-			return post_recv_ok;
-		}
-		received += ret;
-	}
-
-	// Ensure the buffer is null-terminated for safe JSON parsing
-	buffer[total_len] = '\0';
-
-	cJSON *json = cJSON_Parse(buffer);
-	if (!json) {
-		httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Invalid JSON");
-		return ESP_FAIL;
-	}
-
+	// Handle quality field
 	cJSON *q_field = cJSON_GetObjectItem(json, "q");
-	if (cJSON_IsNumber(q_field)) {
-		int q = q_field->valueint;
+	if (q_field) {
+		if (cJSON_IsNumber(q_field)) {
+			int q = q_field->valueint;
 
-		if (q < 11 || q > 63) {
+			if (q < 11 || q > 63) {
+				ESP_LOGE(TAG, "Invalid quality value");
+				cJSON_Delete(json);
+				httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST,
+						    "Invalid quality value");
+				return ESP_FAIL;
+			}
+
+			if (change_camera_jpeg_quality(q) != 0) {
+				ESP_LOGE(TAG, "Failed to update quality");
+				cJSON_Delete(json);
+				httpd_resp_send_err(
+					req, HTTPD_500_INTERNAL_SERVER_ERROR,
+					"Failed to update quality");
+				return ESP_FAIL;
+			}
+			quality_updated = true;
+		} else {
+			ESP_LOGE(TAG, "Quality field is not a valid number");
 			cJSON_Delete(json);
 			httpd_resp_send_err(
 				req, HTTPD_400_BAD_REQUEST,
-				"Field is not a valid resolution type");
+				"Quality field is not a valid number");
 			return ESP_FAIL;
 		}
-
-		// TODO: map to actual resolution in the log statement
-		int reload_result = change_camera_jpeg_quality(q);
-		if (reload_result != 0) {
-			ESP_LOGE(TAG, "Could not reload camera config");
-			cJSON_Delete(json);
-			httpd_resp_send_err(req,
-					    HTTPD_500_INTERNAL_SERVER_ERROR,
-					    "Could not reload camera config");
-			return ESP_FAIL;
-		}
-	} else {
-		ESP_LOGE(TAG, "Not a valid number");
-		cJSON_Delete(json);
-		httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST,
-				    "Field is not a valid number");
-		return ESP_FAIL;
 	}
 
 	cJSON_Delete(json);
-	httpd_resp_sendstr(req, "Resolution changed successfully");
-	return ESP_OK;
-}
 
-esp_err_t toggle_flash_handler(httpd_req_t *req) {
-	esp_err_t res = toggle_camera_flash();
-	if (res != ESP_OK) {
-		httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR,
-				    "Toggle flash ERROR");
+	if (!resolution_updated && !quality_updated) {
+		httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST,
+				    "Provide 'q' or 'rs to update.");
 		return ESP_FAIL;
 	}
 
-	ESP_LOGI(TAG, "Toggle flash OK");
-	httpd_resp_sendstr(req, "Toggle flash OK");
+	httpd_resp_sendstr(req, "Success");
 	return ESP_OK;
 }

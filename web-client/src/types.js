@@ -15,7 +15,7 @@ const AVAILABLE_RESOLUTIONS = [
   { name: "XGA (1024x768)", value: 12 },
   { name: "HD (1280x720)", value: 13 },
   { name: "SXGA (1280x1024)", value: 14 },
-  { name: "UXGA (1600x1200)", value: 15 }
+  { name: "UXGA (1600x1200)", value: 15 },
 ];
 
 const AVAILABLE_JPEG_QUALITY = Array.from({ length: 54 }, (_, i) => {
@@ -23,4 +23,29 @@ const AVAILABLE_JPEG_QUALITY = Array.from({ length: 54 }, (_, i) => {
   return { name: quality, value: quality };
 });
 
-export { AVAILABLE_RESOLUTIONS, AVAILABLE_JPEG_QUALITY };
+const OperationMode = Object.freeze({
+  BUTTONS_MANUAL: 1,
+  JOYSTICK_MANUAL: 0,
+  BUTTONS_AUTO: 2,
+});
+
+const AutoOperationMode = Object.freeze({
+  SQUARE_WITH_TURN: 0,
+  CIRCLE_WITH_TURN: 1,
+  SQUARE_NO_TURN: 2,
+  CIRCLE_DRIFT: 3,
+});
+
+const OPERATION_MODES = [
+  { name: "Joystick Manual", value: OperationMode.JOYSTICK_MANUAL },
+  { name: "Buttons Manual", value: OperationMode.BUTTONS_MANUAL },
+  { name: "Buttons Auto", value: OperationMode.BUTTONS_AUTO },
+];
+
+export {
+  AVAILABLE_RESOLUTIONS,
+  AVAILABLE_JPEG_QUALITY,
+  OPERATION_MODES,
+  OperationMode,
+  AutoOperationMode,
+};

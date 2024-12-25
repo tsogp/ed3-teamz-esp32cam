@@ -34,7 +34,16 @@ const handleKeyDown = (event) => {
 };
 
 const normalizeKeyboardDirection = (x, y) => {
-  return { x: x / (JOYSTICK_SIZE / 2), y: y / (JOYSTICK_SIZE / 2) };
+  const magnitude = Math.sqrt(x * x + y * y);
+
+  if (magnitude === 0) {
+    return { x: 0, y: 0 };
+  }
+
+  const normalizedX = x / magnitude;
+  const normalizedY = y / magnitude;
+
+  return { x: normalizedX.toFixed(2), y: normalizedY.toFixed(2) };
 }
 
 const handleKeyUp = (event) => {

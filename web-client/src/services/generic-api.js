@@ -64,7 +64,6 @@ class ApiCaller {
     this.webSocket.onmessage = (event) => {
       try {
         const data = event.data; 
-        console.log("WebSocket JSON message received:", data);
         this.emitWsEvent("message", data);
       } catch (error) {
         console.error("WebSocket message parsing error:", error);

@@ -11,7 +11,7 @@ struct async_resp_arg {
 static struct async_resp_arg ws_cfg = { .hd = NULL, .fd = -1 };
 
 static void ws_framerate_send(void *arg) {
-	double *fps_arg = (double *) arg;
+	double *fps_arg = (double *)arg;
 	httpd_handle_t hd = ws_cfg.hd;
 	int fd = ws_cfg.fd;
 	httpd_ws_frame_t ws_pkt = { 0 };
@@ -34,7 +34,7 @@ esp_err_t trigger_async_send(double framerate) {
 	}
 
 	double *fps_args = malloc(sizeof(double));
-    *fps_args = framerate;
+	*fps_args = framerate;
 	if (fps_args == NULL) {
 		ESP_LOGE(TAG, "Memory allocation failed for fps_args");
 		return ESP_ERR_NO_MEM;
@@ -75,9 +75,9 @@ esp_err_t controls_data_handler(httpd_req_t *req) {
 		return ESP_FAIL;
 	}
 
-	uint8_t buffer[WS_BUFFER_SIZE] = { 0 };
+	char buffer[WS_BUFFER_SIZE];
 	if (ws_pkt.len) {
-		ws_pkt.payload = buffer;
+		ws_pkt.payload = (uint8_t *)buffer;
 		ret = httpd_ws_recv_frame(req, &ws_pkt, ws_pkt.len);
 		if (ret != ESP_OK) {
 			ESP_LOGE(TAG, "httpd_ws_recv_frame failed with %d",
@@ -85,8 +85,7 @@ esp_err_t controls_data_handler(httpd_req_t *req) {
 			return ret;
 		}
 
-		ESP_LOGI(TAG, "Got packet with message: %s len %d",
-			 ws_pkt.payload, ws_pkt.len);
+		send_data("UART_CONTROLS", buffer, strlen(buffer));
 	}
 
 	return ESP_OK;

@@ -1,7 +1,10 @@
 {
   "C_Cpp.intelliSenseEngine": "default",
   "files.associations": {
-    "mdns.h": "c"
+    "mdns.h": "c",
+    "*.tcc": "c",
+    "string": "c",
+    "string_view": "c"
   },
   "idf.port": "/dev/ttyUSB0",
 }

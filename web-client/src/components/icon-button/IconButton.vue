@@ -1,7 +1,7 @@
 <template>
   <button 
     class="inline-flex justify-center items-center cursor-pointer border-2 border-black hover:bg-slate-50 rounded-lg p-2" 
-    @click="handleClick">
+    @click="$emit('click')">
     <img :src="icon" :alt="altText" class="h-full w-full" :style="iconStyles" />
   </button>
 </template>
@@ -34,11 +34,7 @@ const props = defineProps({
 });
 
 // Emit click event
-const emit = defineEmits();
-
-const handleClick = () => {
-  emit('click');
-};
+const emit = defineEmits(['click']);
 
 // Computed property for icon styles
 const iconStyles = computed(() => {

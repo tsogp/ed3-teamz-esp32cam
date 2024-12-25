@@ -5,6 +5,7 @@
 #include <esp_log.h>
 #include <esp_http_server.h>
 #include <cJSON.h>
+#include "uart.h"
 
 esp_err_t controls_data_handler(httpd_req_t *req);
 esp_err_t trigger_async_send(double framerate);

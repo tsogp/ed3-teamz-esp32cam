@@ -99,22 +99,25 @@ onUnmounted(() => {
           @update:value="(event) => throttle = event" />
         <div class="grid grid-cols-3 grid-rows-3 gap-4 w-52 h-52" v-if="operationMode === OperationMode.BUTTONS_MANUAL">
           <IconButton icon="arrow.svg" altText="Example Icon" icon-transform="rotate(-45deg)"
-            @click="sendButtonData({ x: -0.71, y: -0.71 }, OperationMode.BUTTONS_MANUAL, JoystickMovementType.OMNIDIRECTIONAL, throttle)" />
+            @click="sendButtonData({ x: -0.71, y: 0.71 }, OperationMode.BUTTONS_MANUAL, JoystickMovementType.OMNIDIRECTIONAL, throttle)" />
           <IconButton icon="arrow.svg" altText="Example Icon"
-            @click="sendButtonData({ x: 0, y: -1 }, OperationMode.BUTTONS_MANUAL, JoystickMovementType.OMNIDIRECTIONAL, throttle)" />
+            @click="sendButtonData({ x: 0, y: 1 }, OperationMode.BUTTONS_MANUAL, JoystickMovementType.OMNIDIRECTIONAL, throttle)" />
           <IconButton icon="arrow.svg" altText="Example Icon" icon-transform="rotate(45deg)"
-            @click="sendButtonData({ x: 0.71, y: -0.71 }, OperationMode.BUTTONS_MANUAL, JoystickMovementType.OMNIDIRECTIONAL, throttle)" />
+            @click="sendButtonData({ x: 0.71, y: 0.71 }, OperationMode.BUTTONS_MANUAL, JoystickMovementType.OMNIDIRECTIONAL, throttle)" />
           <IconButton icon="arrow.svg" altText="Example Icon" icon-transform="rotate(-90deg)"
             @click="sendButtonData({ x: -1, y: 0 }, OperationMode.BUTTONS_MANUAL, JoystickMovementType.OMNIDIRECTIONAL, throttle)" />
           <IconButton icon="arrow.svg" altText="Example Icon" icon-transform="rotate(90deg)"
             class="col-start-3 col-end-4"
             @click="sendButtonData({ x: 1, y: 0 }, OperationMode.BUTTONS_MANUAL, JoystickMovementType.OMNIDIRECTIONAL, throttle)" />
           <IconButton icon="arrow.svg" altText="Example Icon" icon-transform="rotate(-135deg)"
-            @click="sendButtonData({ x: -0.71, y: 0.71 }, OperationMode.BUTTONS_MANUAL, JoystickMovementType.OMNIDIRECTIONAL, throttle)" />
+            @click="sendButtonData({ x: -0.71, y: -0.71 }, OperationMode.BUTTONS_MANUAL, JoystickMovementType.OMNIDIRECTIONAL, throttle)" />
           <IconButton icon="arrow.svg" altText="Example Icon" icon-transform="rotate(180deg)"
-            @click="sendButtonData({ x: 0, y: 1 }, OperationMode.BUTTONS_MANUAL, JoystickMovementType.OMNIDIRECTIONAL, throttle)" />
+            @click="sendButtonData({ x: 0, y: -1 }, OperationMode.BUTTONS_MANUAL, JoystickMovementType.OMNIDIRECTIONAL, throttle)" />
           <IconButton icon="arrow.svg" altText="Example Icon" icon-transform="rotate(135deg)"
-            @click="sendButtonData({ x: 0.71, y: 0.71 }, OperationMode.BUTTONS_MANUAL, JoystickMovementType.OMNIDIRECTIONAL, throttle)" />
+            @click="sendButtonData({ x: 0.71, y: -0.71 }, OperationMode.BUTTONS_MANUAL, JoystickMovementType.OMNIDIRECTIONAL, throttle)" />
+
+          <button
+            @click="sendButtonData({ x: 0, y: 0 }, OperationMode.BUTTONS_MANUAL, JoystickMovementType.OMNIDIRECTIONAL, throttle)">stop</button>
         </div>
         <div class="flex flex-col gap-y-3" v-if="operationMode === OperationMode.BUTTONS_AUTO">
           <Button text="Square with turn"

@@ -9,6 +9,7 @@ import IconButton from './components/icon-button/IconButton.vue';
 import Button from './components/button/Button.vue';
 import Joystick from './components/joystick/Joystick.vue';
 import { JoystickMovementType } from './components/joystick/types';
+import pathGen from './services/path-gen2';
 
 const fps = ref("")
 const operationMode = ref(OperationMode.JOYSTICK_MANUAL)
@@ -36,6 +37,9 @@ const changeQuality = async (qId) => {
 const sendManualData = async (event, mode, type) => {
   console.log(event)
   const data = { t: type, m: mode, x: event.x, y: event.y };
+
+  // pathGen.selectPath(5, 1, 5, 1)
+  // return
   if (wsConnected.value) {
     api.sendWebSocketMessage(data);
   }
@@ -50,6 +54,9 @@ const sendButtonData = async (event, mode, type, throttle) => {
 
 const sendAutoButtonData = async (mode, type, throttle) => {
   const data = { t: type, m: mode, th: throttle };
+
+  pathGen.selectPath(5, 1, 5, 1)
+  return
   if (wsConnected.value) {
     api.sendWebSocketMessage(data);
   }

@@ -29,7 +29,6 @@ static void ws_framerate_send(void *arg) {
 
 esp_err_t trigger_async_send(double framerate) {
 	if (!ws_cfg.hd || ws_cfg.fd == -1) {
-		ESP_LOGE(TAG, "WS not yet initialized");
 		return ESP_FAIL;
 	}
 

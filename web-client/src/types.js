@@ -31,9 +31,10 @@ const OperationMode = Object.freeze({
 
 const AutoOperationMode = Object.freeze({
   SQUARE_WITH_TURN: 0,
-  CIRCLE_WITH_TURN: 1,
-  SQUARE_NO_TURN: 2,
-  CIRCLE_DRIFT: 3,
+  SQUARE_NO_TURN: 1,
+  CIRCLE_WITH_TURN: 2,
+  CIRCLE_NO_TURN: 3,
+  CIRCLE_DRIFT: 4,
 });
 
 const OPERATION_MODES = [

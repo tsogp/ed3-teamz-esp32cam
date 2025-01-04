@@ -1,7 +1,9 @@
+import { AutoOperationMode } from "../types";
+
 // Constants
 const l = 0.5; // Distance between wheel pairs (m)
 const d = 0.5; // Distance between wheels along the axis (m)
-const wheelR = 0.097;
+const wheelR = 0.097; 
 
 // Inverse kinematics matrix
 const J_inv = [
@@ -90,11 +92,11 @@ class PathGen {
     // start_move(distance, 0, 0, timePerOp, stepPerOp);
     for (let i = 0; i < 4; i++) {
       // Move forward
-      this.start_move(distance, 60, 0, timePerOp, stepPerOp);
+      this.start_move(distance, 0, 0, timePerOp, stepPerOp);
       // Turn
       this.start_move(distance, 0, 90, timePerOp, stepPerOp);
     }
-
+    
   }
 
   square_no_turn(distance, timePerOp, stepPerOp) {
@@ -115,35 +117,36 @@ class PathGen {
     this.start_move(2 * Math.PI * radius, 0, 360, timePerOp, stepPerOp);
   }
 
-  printPositions(step, signalDelay) {
-    if (step < phi1_history.length) {
-      console.log(`Step ${step}:`);
+  // printPositions(step, signalDelay) {
+  //   if (step < phi1_history.length) {
+      
+  //     const data = JSON.stringify({
+  //       step: step,
+  //       phi1: phi1_history[step].toFixed(3),
+  //       phi2: phi2_history[step].toFixed(3),
+  //       phi3: phi3_history[step].toFixed(3),
+  //       phi4: phi4_history[step].toFixed(3),
+  //     });
+  //     console.log(data);
 
-      const test = this.convertHistoryToJSON(phi1_history[step], phi2_history[step], phi3_history[step], phi4_history[step]);
-      console.log(test);
+  //     setTimeout(() => this.printPositions(step + 1, signalDelay), signalDelay * 1000);
+  //   }
+  // }
 
-      setTimeout(() => this.printPositions(step + 1, signalDelay), signalDelay * 1000);
-    }
-  }
+  // convertHistoryToJSON(phi1, phi2, phi3, phi4) {
+  //   // Construct an object with the provided values
+  //   const historyObject = {
+  //     phi1: phi1.toFixed(2),
+  //     phi2: phi2.toFixed(2),
+  //     phi3: phi3.toFixed(2),
+  //     phi4: phi4.toFixed(2),
+  //   };
 
-  convertHistoryToJSON(phi1, phi2, phi3, phi4) {
-    phi1 = phi1.toFixed(2);
-    phi2 = phi2.toFixed(2);
-    phi3 = phi3.toFixed(2);
-    phi4 = phi4.toFixed(2);
-    // Construct an object with the provided values
-    const historyObject = {
-      phi1: phi1,
-      phi2: phi2,
-      phi3: phi3,
-      phi4: phi4,
-    };
+  //   // Convert the object into a JSON string
+  //   return JSON.stringify(historyObject); // Pretty format with 2 spaces
+  // }
 
-    // Convert the object into a JSON string
-    return JSON.stringify(historyObject, null, 2); // Pretty format with 2 spaces
-  }
-
-  selectPath(distance, signalDelay, stepPerOp, option) {
+  selectPath(option, distance, signalDelay, stepPerOp) {
     time_history = [0];
     x_history = [0];
     y_history = [0];
@@ -162,29 +165,37 @@ class PathGen {
     phi3_history = [0];
     phi4_history = [0];
 
+    const timePerOp = 1;
     switch (option) {
-      case 0:
-        this.square_with_turn(distance, 5, stepPerOp);
-        this.printPositions(1, signalDelay);
+      case AutoOperationMode.SQUARE_WITH_TURN:
+        this.square_with_turn(distance, timePerOp, stepPerOp);
+        // this.printPositions(1, signalDelay);
         break;
-      case 1:
-        this.square_no_turn(distance, 5, stepPerOp);
-        this.printPositions(1, signalDelay);
+      case AutoOperationMode.SQUARE_NO_TURN:
+        this.square_no_turn(distance, timePerOp, stepPerOp);
+        // this.printPositions(1, signalDelay);
         break;
-      case 2:
-        this.circle_with_turn(distance, 5, stepPerOp);
-        this.printPositions(1, signalDelay);
+      case AutoOperationMode.CIRCLE_WITH_TURN:
+        this.circle_with_turn(distance, timePerOp, stepPerOp);
+        // this.printPositions(1, signalDelay);
         break;
-      case 3:
-        this.circle_no_turn(distance, 5, stepPerOp);
-        this.printPositions(1, signalDelay);
+      case AutoOperationMode.CIRCLE_DRIFT:
+        this.circle_no_turn(distance, timePerOp, stepPerOp);
+        // this.printPositions(1, signalDelay);
         break;
-      case 4:
-        this.circle_center_turn(distance, 5, stepPerOp);
-        this.printPositions(1, signalDelay);
+      case AutoOperationMode.CIRCLE_NO_TURN:
+        this.circle_center_turn(distance, timePerOp, stepPerOp);
+        // this.printPositions(1, signalDelay);
         break;
       default:
         console.log('Invalid option');
+    }
+    
+    return {
+      phi1_history: phi1_history.slice(),
+      phi2_history: phi2_history.slice(),
+      phi3_history: phi3_history.slice(),
+      phi4_history: phi4_history.slice(),
     }
   }
 }

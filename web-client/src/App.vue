@@ -52,14 +52,48 @@ const sendButtonData = async (event, mode, type, throttle) => {
   }
 }
 
-const sendAutoButtonData = async (mode, type, throttle) => {
+const sendAutoButtonData = async (mode, type) => {
   const data = { t: type, m: mode, th: throttle };
+  const distance = 5;
+  const step = 4;
+  const cooldown = 3;
 
-  pathGen.selectPath(5, 1, 5, 1)
-  return
-  if (wsConnected.value) {
-    api.sendWebSocketMessage(data);
+  // const data_ = {
+  //   m: mode,
+  //   t: type,
+  //   d: distance,
+  //   st: step,
+  //   cd: cooldown,
+  // }
+
+  const { phi1_history, phi2_history, phi3_history, phi4_history } =
+    pathGen.selectPath(type, distance, cooldown, step);
+
+  console.log(phi1_history);
+
+  const cb = (iter) => {
+    if (iter >= phi1_history.length) return;
+
+    const data = JSON.stringify({
+      m: mode,
+      // t: type,
+      step: iter,
+      p1: phi1_history[iter].toFixed(3),
+      p2: phi2_history[iter].toFixed(3),
+      p3: phi3_history[iter].toFixed(3),
+      p4: phi4_history[iter].toFixed(3),
+    });
+    console.log(data);
+
+    if (wsConnected.value) {
+      api.sendWebSocketMessage(data);
+    }
+
+    setTimeout(() => cb(iter + 1), cooldown * 1000);
   }
+
+  cb(1);
+
 }
 
 onMounted(async () => {
@@ -99,11 +133,13 @@ onUnmounted(() => {
       </div>
       <span>FPS: {{ fps }}</span>
     </div>
+
     <div class="flex flex-col w-full h-full">
       <div class="flex flex-row gap-x-5">
         <Slider :min="0" :max="3" :initial-value="0" name="Throttle"
           v-if="operationMode === OperationMode.BUTTONS_MANUAL || operationMode === OperationMode.BUTTONS_AUTO"
           @update:value="(event) => throttle = event" />
+
         <div class="grid grid-cols-3 grid-rows-3 gap-4 w-52 h-52" v-if="operationMode === OperationMode.BUTTONS_MANUAL">
           <IconButton icon="arrow.svg" altText="Example Icon" icon-transform="rotate(-45deg)"
             @click="sendButtonData({ x: -0.71, y: 0.71 }, OperationMode.BUTTONS_MANUAL, JoystickMovementType.OMNIDIRECTIONAL, throttle)" />
@@ -122,19 +158,21 @@ onUnmounted(() => {
             @click="sendButtonData({ x: 0, y: -1 }, OperationMode.BUTTONS_MANUAL, JoystickMovementType.OMNIDIRECTIONAL, throttle)" />
           <IconButton icon="arrow.svg" altText="Example Icon" icon-transform="rotate(135deg)"
             @click="sendButtonData({ x: 0.71, y: -0.71 }, OperationMode.BUTTONS_MANUAL, JoystickMovementType.OMNIDIRECTIONAL, throttle)" />
-
           <button
             @click="sendButtonData({ x: 0, y: 0 }, OperationMode.BUTTONS_MANUAL, JoystickMovementType.OMNIDIRECTIONAL, throttle)">stop</button>
         </div>
+
         <div class="flex flex-col gap-y-3" v-if="operationMode === OperationMode.BUTTONS_AUTO">
           <Button text="Square with turn"
-            @click="sendAutoButtonData(OperationMode.BUTTONS_AUTO, AutoOperationMode.SQUARE_WITH_TURN, throttle)" />
-          <Button text="Circle with turn"
-            @click="sendAutoButtonData(OperationMode.BUTTONS_AUTO, AutoOperationMode.CIRCLE_WITH_TURN, throttle)" />
+            @click="sendAutoButtonData(OperationMode.BUTTONS_AUTO, AutoOperationMode.SQUARE_WITH_TURN)" />
           <Button text="Square no turn"
-            @click="sendAutoButtonData(OperationMode.BUTTONS_AUTO, AutoOperationMode.SQUARE_NO_TURN, throttle)" />
+            @click="sendAutoButtonData(OperationMode.BUTTONS_AUTO, AutoOperationMode.SQUARE_NO_TURN)" />
+          <Button text="Circle with turn"
+            @click="sendAutoButtonData(OperationMode.BUTTONS_AUTO, AutoOperationMode.CIRCLE_WITH_TURN)" />
+          <Button text="Circle no turn"
+            @click="sendAutoButtonData(OperationMode.BUTTONS_AUTO, AutoOperationMode.CIRCLE_NO_TURN)" />
           <Button text="Circle drift"
-            @click="sendAutoButtonData(OperationMode.BUTTONS_AUTO, AutoOperationMode.CIRCLE_DRIFT, throttle)" />
+            @click="sendAutoButtonData(OperationMode.BUTTONS_AUTO, AutoOperationMode.CIRCLE_DRIFT)" />
         </div>
       </div>
 

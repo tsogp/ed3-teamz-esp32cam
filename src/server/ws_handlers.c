@@ -1,7 +1,10 @@
 #include "server/ws_handlers.h"
 
 #define TAG "WS_HANDLERS"
-#define WS_BUFFER_SIZE 64
+#define WS_BUFFER_SIZE 128
+#define WE_BUFFER_SEND_SIZE 8
+
+static double *fps_arg;
 
 struct async_resp_arg {
 	httpd_handle_t hd;
@@ -24,7 +27,6 @@ static void ws_framerate_send(void *arg) {
 	ws_pkt.type = HTTPD_WS_TYPE_TEXT;
 
 	httpd_ws_send_frame_async(hd, fd, &ws_pkt);
-	free(fps_arg);
 }
 
 esp_err_t trigger_async_send(double framerate) {
@@ -32,18 +34,8 @@ esp_err_t trigger_async_send(double framerate) {
 		return ESP_FAIL;
 	}
 
-	double *fps_args = malloc(sizeof(double));
-	*fps_args = framerate;
-	if (fps_args == NULL) {
-		ESP_LOGE(TAG, "Memory allocation failed for fps_args");
-		return ESP_ERR_NO_MEM;
-	}
-
-	esp_err_t ret =
-		httpd_queue_work(ws_cfg.hd, ws_framerate_send, fps_args);
-	if (ret != ESP_OK) {
-		free(fps_args);
-	}
+	*fps_arg = framerate;
+	esp_err_t ret = httpd_queue_work(ws_cfg.hd, ws_framerate_send, fps_arg);
 
 	return ret;
 }

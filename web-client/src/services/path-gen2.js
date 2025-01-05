@@ -146,7 +146,7 @@ class PathGen {
   //   return JSON.stringify(historyObject); // Pretty format with 2 spaces
   // }
 
-  selectPath(option, distance, signalDelay, stepPerOp) {
+  selectPath(option, distance, stepPerOp) {
     time_history = [0];
     x_history = [0];
     y_history = [0];

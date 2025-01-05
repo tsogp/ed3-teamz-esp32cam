@@ -7,6 +7,7 @@
 #include <esp_log.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/semphr.h>
+#include "lwip/sockets.h"
 #include "camera.h"
 
 #include "server/camera_handlers.h"

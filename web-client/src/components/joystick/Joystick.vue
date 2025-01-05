@@ -1,8 +1,8 @@
 <template>
   <Joystick ref="joystick" :size="JOYSTICK_SIZE" :stick-size="JOYSTICK_SIZE / 2" :base-color="BASE_COLOR"
     :stick-color="STICK_COLOR" :throttle="100"
-    @stop="$emit('movementEnded', { x: Number(($event?.x ?? 0).toFixed(2)), y: Number(($event?.y ?? 0).toFixed(2)) })"
-    @move="$emit('movementChanged', { x: Number(($event?.x ?? 0).toFixed(2)), y: Number(($event?.y ?? 0).toFixed(2)) })" />
+    @stop="$emit('movementEnded', { x: Number(($event?.x ?? 0).toFixed(3)), y: Number(($event?.y ?? 0).toFixed(3)) })"
+    @move="$emit('movementChanged', { x: Number(($event?.x ?? 0).toFixed(3)), y: Number(($event?.y ?? 0).toFixed(3)) })" />
 </template>
 
 <script setup>
@@ -43,7 +43,7 @@ const normalizeKeyboardDirection = (x, y) => {
   const normalizedX = x / magnitude;
   const normalizedY = y / magnitude;
 
-  return { x: normalizedX.toFixed(2), y: normalizedY.toFixed(2) };
+  return { x: normalizedX.toFixed(3), y: normalizedY.toFixed(3) };
 }
 
 const handleKeyUp = (event) => {

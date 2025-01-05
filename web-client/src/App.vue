@@ -36,8 +36,15 @@ const changeQuality = async (qId) => {
 }
 
 const sendManualData = async (event, mode, type) => {
-  console.log(event)
+  // rotate 90 degrees for car coordinate
+  const _temp = event.x;
+  event.x = event.y;
+  event.y = -_temp;
+
   const data = { t: type, m: mode, x: event.x, y: event.y };
+  console.log(data);
+  
+  
 
   // pathGen.selectPath(5, 1, 5, 1)
   // return
@@ -47,8 +54,7 @@ const sendManualData = async (event, mode, type) => {
 }
 
 const sendButtonData = async (event, mode, type, throttle) => {
-  console.log({x: event.x, y: event.y});
-  
+  // console.log({x: event.x, y: event.y});
   // rotate 90 degrees for car coordinate
   const _temp = event.x;
   event.x = event.y;
@@ -62,6 +68,7 @@ const sendButtonData = async (event, mode, type, throttle) => {
     event.y = 0;
   }
 
+  // send data
   const data = { t: type, m: mode, x: event.x, y: event.y, th: throttle };
   console.log(data);
   
@@ -87,7 +94,7 @@ const sendAutoButtonData = async (mode, type) => {
   const { phi1_history, phi2_history, phi3_history, phi4_history } =
     pathGen.selectPath(type, distance, step);
 
-  console.log(phi1_history);
+  // console.log(phi1_history);
 
   const cb = (iter) => {
     if (iter >= phi1_history.length) return;

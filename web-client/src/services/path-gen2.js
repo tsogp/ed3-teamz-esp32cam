@@ -54,7 +54,7 @@ class PathGen {
     const v3 = (1 / wheelR) * (vCarX + vCarY - (l + d) * vCarPhi);
     const v4 = (1 / wheelR) * (vCarX - vCarY + (l + d) * vCarPhi);
 
-    console.log(`vCarX: ${vCarX}, vCarY: ${vCarY}, vCarPhi: ${vCarPhi}`);
+    // console.log(`vCarX: ${vCarX}, vCarY: ${vCarY}, vCarPhi: ${vCarPhi}`);
 
     for (let i = 0; i < step; i++) {
       const dPhi = vCarPhi * dt;

@@ -1,9 +1,9 @@
 import { AutoOperationMode } from "../types";
 
 // Constants
-const l = 0.5; // Distance between wheel pairs (m)
-const d = 0.5; // Distance between wheels along the axis (m)
-const wheelR = 0.097; 
+const l = 0.25; // Distance between wheel pairs (m)
+const d = 0.25; // Distance between wheels along the axis (m)
+const wheelR = 0.05; 
 
 // Inverse kinematics matrix
 const J_inv = [
@@ -48,6 +48,7 @@ class PathGen {
     const vCarX = (distance * Math.cos(angleMove)) / time;
     const vCarY = (distance * Math.sin(angleMove)) / time;
     const vCarPhi = angleSpin / time;
+    console.log('>', vCarX, vCarY, vCarPhi);
 
     const v1 = (1 / wheelR) * (vCarX - vCarY - (l + d) * vCarPhi);
     const v2 = (1 / wheelR) * (vCarX + vCarY + (l + d) * vCarPhi);
@@ -57,9 +58,7 @@ class PathGen {
     // console.log(`vCarX: ${vCarX}, vCarY: ${vCarY}, vCarPhi: ${vCarPhi}`);
 
     for (let i = 0; i < step; i++) {
-      const dPhi = vCarPhi * dt;
-      const phi = phi_history[phi_history.length - 1] + dPhi;
-
+      const phi = phi_history[phi_history.length - 1] + vCarPhi * dt;
       const x_pos = x_history[x_history.length - 1] + (vCarX * Math.cos(phi) - vCarY * Math.sin(phi)) * dt;
       const y_pos = y_history[y_history.length - 1] + (vCarX * Math.sin(phi) + vCarY * Math.cos(phi)) * dt;
 
@@ -94,7 +93,7 @@ class PathGen {
       // Move forward
       this.start_move(distance, 0, 0, timePerOp, stepPerOp);
       // Turn
-      this.start_move(distance, 0, 90, timePerOp, stepPerOp);
+      this.start_move(0, 0, 90/2, timePerOp, stepPerOp);
     }
     
   }
@@ -106,16 +105,26 @@ class PathGen {
   }
 
   circle_with_turn(radius, timePerOp, stepPerOp) {
-    this.start_move(2 * Math.PI * radius, 0, 360, timePerOp, stepPerOp);
-  }
-
-  circle_no_turn(radius, timePerOp, stepPerOp) {
-    this.start_move(2 * Math.PI * radius, 0, 0, timePerOp, stepPerOp);
+    this.start_move(2 * Math.PI * radius, 0, 360/2, timePerOp, 32);
   }
 
   circle_center_turn(radius, timePerOp, stepPerOp) {
-    this.start_move(2 * Math.PI * radius, 0, 360, timePerOp, stepPerOp);
+    this.start_move(0,0,-90/2, timePerOp, 4)
+    this.start_move(2 * Math.PI * radius, 90, 360/2, timePerOp, 16);
   }
+
+  circle_no_turn(radius, timePerOp, stepPerOp) {
+    stepPerOp = 32;
+    const totalDeg = 360;
+    const unitDeg = totalDeg / stepPerOp;
+    const unitArc = radius * (unitDeg * Math.PI / 180); // converting degrees to radians
+
+    for (let angle = 0; angle < totalDeg; angle += unitDeg) {
+      this.start_move(unitArc, angle, 0, timePerOp / stepPerOp, 1);
+    }
+  }
+
+
 
   // printPositions(step, signalDelay) {
   //   if (step < phi1_history.length) {
@@ -180,11 +189,11 @@ class PathGen {
         // this.printPositions(1, signalDelay);
         break;
       case AutoOperationMode.CIRCLE_DRIFT:
-        this.circle_no_turn(distance, timePerOp, stepPerOp);
+        this.circle_center_turn(distance, timePerOp, stepPerOp);
         // this.printPositions(1, signalDelay);
         break;
       case AutoOperationMode.CIRCLE_NO_TURN:
-        this.circle_center_turn(distance, timePerOp, stepPerOp);
+        this.circle_no_turn(distance, timePerOp, stepPerOp);
         // this.printPositions(1, signalDelay);
         break;
       default:

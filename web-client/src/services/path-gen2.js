@@ -48,7 +48,7 @@ class PathGen {
     const vCarX = (distance * Math.cos(angleMove)) / time;
     const vCarY = (distance * Math.sin(angleMove)) / time;
     const vCarPhi = angleSpin / time;
-    console.log('>', vCarX, vCarY, vCarPhi);
+    // console.log('>', vCarX, vCarY, vCarPhi);
 
     const v1 = (1 / wheelR) * (vCarX - vCarY - (l + d) * vCarPhi);
     const v2 = (1 / wheelR) * (vCarX + vCarY + (l + d) * vCarPhi);
@@ -114,7 +114,7 @@ class PathGen {
   }
 
   circle_no_turn(radius, timePerOp, stepPerOp) {
-    stepPerOp = 32;
+    stepPerOp = 16;
     const totalDeg = 360;
     const unitDeg = totalDeg / stepPerOp;
     const unitArc = radius * (unitDeg * Math.PI / 180); // converting degrees to radians

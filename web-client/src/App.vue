@@ -95,11 +95,11 @@ const sendAutoButtonData = async (mode, type) => {
   let { phi1_history, phi2_history, phi3_history, phi4_history } =
     pathGen.selectPath(type, distance, step);
 
-  console.log('before');
-  console.log(phi1_history);
-  console.log(phi2_history);
-  console.log(phi3_history);
-  console.log(phi4_history);
+  // console.log('before');
+  // console.log(phi1_history);
+  // console.log(phi2_history);
+  // console.log(phi3_history);
+  // console.log(phi4_history);
 
   phi1_history = phi1_history.map(i => i * 330 / (2 * Math.PI))
   phi2_history = phi2_history.map(i => i * 330 / (2 * Math.PI) * -1)
@@ -134,10 +134,10 @@ const sendAutoButtonData = async (mode, type) => {
       m: mode,
       // t: type,
       // step: iter,
-      p1: phi1_history[iter].toFixed(3),
-      p2: phi2_history[iter].toFixed(3),
-      p3: phi3_history[iter].toFixed(3),
-      p4: phi4_history[iter].toFixed(3),
+      p1: phi1_history[iter],
+      p2: phi2_history[iter],
+      p3: phi3_history[iter],
+      p4: phi4_history[iter],
     });
 
     console.log(data);
@@ -148,7 +148,7 @@ const sendAutoButtonData = async (mode, type) => {
     setTimeout(() => cb(iter + 1), cooldown * 1000);
   }
 
-  // cb(1);
+  cb(1);
 
 }
 

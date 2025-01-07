@@ -1,22 +1,47 @@
 <template>
-  <div class="relative w-[700px] h-[700px] bg-gray-900">
-    <div v-if="hasError" class="absolute inset-0 flex flex-col items-center justify-center space-y-4 text-white">
+  <div class="relative w-full h-full bg-gray-900">
+
+    <div v-if="loading" class="absolute inset-0 flex flex-col items-center justify-center space-y-4 text-white">
       <div class="animate-spin rounded-full h-32 w-32 border-t-4 border-blue-500"></div>
-      <p class="text-lg font-semibold">Error loading stream. Retrying...</p>
+      <p v-if="hasError" class="text-lg font-semibold">Error loading stream. Retrying...</p>
     </div>
-    <img v-else :src="streamUrl" alt="MJPEG Stream" class="absolute inset-0 w-full h-full" @error="handleStreamError" />
+
+    <img v-show="!loading" :src="streamUrl" alt="MJPEG Stream" class="relative inset-0 w-full h-full object-contain"
+      @error="handleStreamError" @load="handleStreamLoaded">
+    <FPSComponent :fps="fps" class="absolute top-4 right-4 z-10 p-1" />
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { onMounted, ref } from 'vue';
 import { DEFAULT_URL } from '../../services/types';
+import FPSComponent from '../../components/fps/FPSComponent.vue';
+import api from '../../services/generic-api';
 
 const streamUrl = ref(DEFAULT_URL);
 const hasError = ref(false);
+const loading = ref(true);
+const fps = ref(0);
+
+const handleStreamLoaded = () => {
+  console.log("Picture stream loaded.");
+  loading.value = false;
+}
 
 const handleStreamError = () => {
   console.error("Error loading the MJPEG stream.");
   hasError.value = true;
+  loading.value = true;
 };
+
+onMounted(() => {
+  api.addWsListener("message", (data) => {
+    try {
+      const num = Number(data);
+      if (num) {
+        fps.value = num;
+      }
+    } catch (e) { }
+  });
+})
 </script>

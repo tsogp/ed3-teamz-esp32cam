@@ -33,7 +33,7 @@ class ApiCaller {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
 
-      return await response.json();
+      return response.type === "cors" ? response : await response.json();
     } catch (error) {
       console.error(`Error in API call: ${error.message}`);
       throw error;
@@ -52,18 +52,24 @@ class ApiCaller {
     return this.request(endpoint, "OPTIONS", null, {});
   }
 
-  connectWebSocket(wsEndpoint) {
+  connectWebSocket(wsEndpoint, onOpenHandler) {
     const url = `${this.baseUrl.replace(/^http/, "ws")}${wsEndpoint}`;
     this.webSocket = new WebSocket(url);
 
     this.webSocket.onopen = () => {
       console.log("WebSocket connected");
+      onOpenHandler();
       this.emitWsEvent("open", {});
     };
 
     this.webSocket.onmessage = (event) => {
       try {
-        const data = event.data; 
+        const data = event.data;
+
+        if (data === "ping") {
+          this.sendPong();
+        }
+
         this.emitWsEvent("message", data);
       } catch (error) {
         console.error("WebSocket message parsing error:", error);
@@ -99,6 +105,18 @@ class ApiCaller {
       throw new Error(
         "Invalid message format. Must be a valid JSON object or stringified JSON."
       );
+    }
+  }
+
+  sendPong() {
+    if (!this.webSocket || this.webSocket.readyState !== WebSocket.OPEN) {
+      throw new Error("WebSocket is not connected");
+    }
+
+    try {
+      this.webSocket.send("pong");
+    } catch (error) {
+      console.error("Error preparing pong message:", error);
     }
   }
 

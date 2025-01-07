@@ -3,7 +3,7 @@
     <span class="text-sm text-gray-600">{{ title + ":" }}</span>
     <div class="relative inline-block">
       <button @click="toggleDropdown"
-        class="border border-gray-300 px-4 py-2 hover:bg-gray-100 focus:outline-none w-48 text-left flex justify-between items-center">
+        class="border border-[#007ee3] px-4 py-2 hover:bg-gray-100 focus:outline-none w-48 text-left flex justify-between items-center">
         <span>{{ chosenItem?.name ?? "Choose an item" }}</span>
         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24"
           stroke="currentColor" stroke-width="2">

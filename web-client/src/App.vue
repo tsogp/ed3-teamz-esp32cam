@@ -56,7 +56,7 @@ const sendAutoButtonData = async (mode, type) => {
   const data = { t: type, m: mode, th: throttle };
   const distance = 5;
   const step = 4;
-  const cooldown = 3;
+  const cooldown = 1;
 
   // const data_ = {
   //   m: mode,
@@ -66,8 +66,32 @@ const sendAutoButtonData = async (mode, type) => {
   //   cd: cooldown,
   // }
 
-  const { phi1_history, phi2_history, phi3_history, phi4_history } =
+  let { phi1_history, phi2_history, phi3_history, phi4_history } =
     pathGen.selectPath(type, distance, cooldown, step);
+
+  // calculate delta
+  phi1_history = phi1_history.map((val, idx) => {
+    if (idx === 0) return val;
+    return val - phi1_history[idx - 1];
+  });
+  phi2_history = phi2_history.map((val, idx) => {
+    if (idx === 0) return val;
+    return val - phi2_history[idx - 1];
+  });
+  phi3_history = phi3_history.map((val, idx) => {
+    if (idx === 0) return val;
+    return val - phi3_history[idx - 1];
+  });
+  phi4_history = phi4_history.map((val, idx) => {
+    if (idx === 0) return val;
+    return val - phi4_history[idx - 1];
+  });
+
+  // translate to car 
+  phi1_history = phi1_history.map((val) => val * 330 / (2 * Math.PI));
+  phi2_history = phi2_history.map((val) => val * 330 / (2 * Math.PI) * -1);
+  phi3_history = phi3_history.map((val) => val * 330 / (2 * Math.PI));
+  phi4_history = phi4_history.map((val) => val * 330 / (2 * Math.PI) * -1);
 
   console.log(phi1_history);
 

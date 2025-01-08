@@ -111,6 +111,7 @@ class PathGen {
   circle_center_turn(radius, timePerOp, stepPerOp) {
     this.start_move(0,0,-90/2, timePerOp, 4)
     this.start_move(2 * Math.PI * radius, 90, 360/2, timePerOp, 16);
+    this.start_move(0,0,90/2, timePerOp, 4)
   }
 
   circle_no_turn(radius, timePerOp, stepPerOp) {

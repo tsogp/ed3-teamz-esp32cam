@@ -42,12 +42,12 @@ const sendManualData = async (event, mode, type) => {
   event.x = event.y;
   event.y = -_temp;
 
-  const data = { t: type, m: mode, x: event.x, y: event.y };
+  // const data = { t: type, m: mode, x: event.x, y: event.y };
+  const data = (type == JoystickMovementType.ROTATIONAL) ?
+    { t: type, m: mode, z: event.z } :
+    { t: type, m: mode, x: event.x, y: event.y };
   console.log(data);
 
-
-
-  // pathGen.selectPath(5, 1, 5, 1)
   // return
   if (wsConnected.value) {
     api.sendWebSocketMessage(data);
@@ -70,7 +70,9 @@ const sendButtonData = async (event, mode, type, throttle) => {
   }
 
   // send data
-  const data = { t: type, m: mode, x: event.x, y: event.y, th: throttle };
+  const data = (type == JoystickMovementType.ROTATIONAL) ?
+    { t: type, m: mode, z: event.z } :
+    { t: type, m: mode, x: event.x, y: event.y };
   console.log(data);
 
   if (wsConnected.value) {
@@ -79,18 +81,10 @@ const sendButtonData = async (event, mode, type, throttle) => {
 }
 
 const sendAutoButtonData = async (mode, type) => {
-  const data = { t: type, m: mode, th: throttle };
   const distance = 0.5;
   const cooldown = 1;
   const step = 4;
 
-  // const data_ = {
-  //   m: mode,
-  //   t: type,
-  //   d: distance,
-  //   st: step,
-  //   cd: cooldown,
-  // }
 
   let { phi1_history, phi2_history, phi3_history, phi4_history } =
     pathGen.selectPath(type, distance, step);
@@ -117,15 +111,12 @@ const sendAutoButtonData = async (mode, type) => {
   phi2_history.shift();
   phi3_history.shift();
   phi4_history.shift();
-  
-  // multiply array with -1
+
   console.log('after');
   console.log(phi1_history);
   console.log(phi2_history);
   console.log(phi3_history);
   console.log(phi4_history);
-  // phi2_history = phi2_history.map(x => x * -1)
-  // phi4_history = phi4_history.map(x => x * -1)
 
   const cb = (iter) => {
     if (iter >= phi1_history.length) return;
@@ -149,7 +140,6 @@ const sendAutoButtonData = async (mode, type) => {
   }
 
   cb(1);
-
 }
 
 onMounted(async () => {
@@ -178,6 +168,11 @@ onBeforeUnmount(() => {
     closeWS();
     wsConnected.value = false;
   }
+  // <div class="pointer-events-auto">
+  //   <Joystick :movement-type="JoystickMovementType.ROTATIONAL"
+  //     @movement-changed="(event) => sendManualData(event, OperationMode.JOYSTICK_MANUAL, JoystickMovementType.ROTATIONAL)"
+  //     @movement-ended="(event) => sendManualData(event, OperationMode.JOYSTICK_MANUAL, JoystickMovementType.ROTATIONAL)" />
+  // </div>
 })
 
 </script>
@@ -199,9 +194,21 @@ onBeforeUnmount(() => {
     </div>
 
     <div class="flex flex-row gap-x-5 w-full justify-center">
-      <Slider :min="0" :max="3" :initial-value="0" name="Throttle"
+      <!-- <Slider :min="0" :max="3" :initial-value="0" name="Throttle"
         v-if="operationMode === OperationMode.BUTTONS_MANUAL || operationMode === OperationMode.BUTTONS_AUTO"
-        @update:value="(event) => throttle = event" />
+        @update:value="(event) => throttle = event" /> -->
+
+      <div class="flex flex-row gap-x-16 pointer-events-none" v-if="operationMode === OperationMode.JOYSTICK_MANUAL">
+        <div class="pointer-events-auto">
+          <Joystick :movement-type="JoystickMovementType.OMNIDIRECTIONAL"
+            @movement-changed="(event) => sendManualData(event, OperationMode.JOYSTICK_MANUAL, JoystickMovementType.OMNIDIRECTIONAL)"
+            @movement-ended="(event) => sendManualData(event, OperationMode.JOYSTICK_MANUAL, JoystickMovementType.OMNIDIRECTIONAL)" />
+          <IconButton icon="spin-left.svg" altText="Example Icon" icon-transform=""
+            @click="sendManualData({ y: 0, x: 0, z: 1 }, OperationMode.JOYSTICK_MANUAL, JoystickMovementType.ROTATIONAL, throttle)" />
+          <IconButton icon="spin-right.svg" altText="Example Icon" icon-transform=""
+            @click="sendManualData({ y: 0, x: 0, z: -1 }, OperationMode.JOYSTICK_MANUAL, JoystickMovementType.ROTATIONAL, throttle)" />
+        </div>
+      </div>
 
       <div class="grid grid-cols-3 grid-rows-3 gap-4 w-52 h-52" v-if="operationMode === OperationMode.BUTTONS_MANUAL">
         <IconButton icon="arrow.svg" altText="Example Icon" icon-transform="rotate(-45deg)"
@@ -215,12 +222,18 @@ onBeforeUnmount(() => {
           @click="sendButtonData({ x: -1, y: 0 }, OperationMode.BUTTONS_MANUAL, JoystickMovementType.OMNIDIRECTIONAL, throttle)" />
         <IconButton icon="arrow.svg" altText="Example Icon" icon-transform="rotate(90deg)" class="col-start-3 col-end-4"
           @click="sendButtonData({ x: 1, y: 0 }, OperationMode.BUTTONS_MANUAL, JoystickMovementType.OMNIDIRECTIONAL, throttle)" />
+
         <IconButton icon="arrow.svg" altText="Example Icon" icon-transform="rotate(-135deg)"
           @click="sendButtonData({ x: -_sqrt, y: -_sqrt }, OperationMode.BUTTONS_MANUAL, JoystickMovementType.OMNIDIRECTIONAL, throttle)" />
         <IconButton icon="arrow.svg" altText="Example Icon" icon-transform="rotate(180deg)"
           @click="sendButtonData({ x: 0, y: -1 }, OperationMode.BUTTONS_MANUAL, JoystickMovementType.OMNIDIRECTIONAL, throttle)" />
         <IconButton icon="arrow.svg" altText="Example Icon" icon-transform="rotate(135deg)"
           @click="sendButtonData({ x: _sqrt, y: -_sqrt }, OperationMode.BUTTONS_MANUAL, JoystickMovementType.OMNIDIRECTIONAL, throttle)" />
+
+        <IconButton icon="spin-left.svg" altText="Example Icon" icon-transform=""
+          @click="sendButtonData({ y: 0, x: 0, z: 1 }, OperationMode.BUTTONS_MANUAL, JoystickMovementType.ROTATIONAL, throttle)" />
+        <IconButton icon="spin-right.svg" altText="Example Icon" icon-transform=""
+          @click="sendButtonData({ y: 0, x: 0, z: -1 }, OperationMode.BUTTONS_MANUAL, JoystickMovementType.ROTATIONAL, throttle)" />
 
         <button
           @click="sendButtonData({ x: 0, y: 0 }, OperationMode.BUTTONS_MANUAL, JoystickMovementType.OMNIDIRECTIONAL, throttle)">stop</button>
@@ -239,18 +252,6 @@ onBeforeUnmount(() => {
           @click="sendAutoButtonData(OperationMode.BUTTONS_AUTO, AutoOperationMode.CIRCLE_NO_TURN)" />
       </div>
 
-      <div class="flex flex-row gap-x-16 pointer-events-none" v-if="operationMode === OperationMode.JOYSTICK_MANUAL">
-        <div class="pointer-events-auto">
-          <Joystick :movement-type="JoystickMovementType.OMNIDIRECTIONAL"
-            @movement-changed="(event) => sendManualData(event, OperationMode.JOYSTICK_MANUAL, JoystickMovementType.OMNIDIRECTIONAL)"
-            @movement-ended="(event) => sendManualData(event, OperationMode.JOYSTICK_MANUAL, JoystickMovementType.OMNIDIRECTIONAL)" />
-        </div>
-        <div class="pointer-events-auto">
-          <Joystick :movement-type="JoystickMovementType.ROTATIONAL"
-            @movement-changed="(event) => sendManualData(event, OperationMode.JOYSTICK_MANUAL, JoystickMovementType.ROTATIONAL)"
-            @movement-ended="(event) => sendManualData(event, OperationMode.JOYSTICK_MANUAL, JoystickMovementType.ROTATIONAL)" />
-        </div>
-      </div>
     </div>
   </div>
 </template>

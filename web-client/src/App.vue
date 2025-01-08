@@ -15,6 +15,7 @@ const fps = ref("")
 const operationMode = ref(OperationMode.JOYSTICK_MANUAL)
 const wsConnected = ref(false);
 const throttle = ref(0);
+const _sqrt = ref(0.707);
 
 const changeResolution = async (resId) => {
   try {
@@ -35,8 +36,15 @@ const changeQuality = async (qId) => {
 }
 
 const sendManualData = async (event, mode, type) => {
-  console.log(event)
+  // rotate 90 degrees for car coordinate
+  const _temp = event.x;
+  event.x = event.y;
+  event.y = -_temp;
+
   const data = { t: type, m: mode, x: event.x, y: event.y };
+  console.log(data);
+  
+  
 
   // pathGen.selectPath(5, 1, 5, 1)
   // return
@@ -46,7 +54,24 @@ const sendManualData = async (event, mode, type) => {
 }
 
 const sendButtonData = async (event, mode, type, throttle) => {
+  // console.log({x: event.x, y: event.y});
+  // rotate 90 degrees for car coordinate
+  const _temp = event.x;
+  event.x = event.y;
+  event.y = -_temp;
+  
+  // error zero
+  if (event.x === 0) {
+    event.x = 0;
+  }
+  if (event.y === 0) {
+    event.y = 0;
+  }
+
+  // send data
   const data = { t: type, m: mode, x: event.x, y: event.y, th: throttle };
+  console.log(data);
+  
   if (wsConnected.value) {
     api.sendWebSocketMessage(data);
   }
@@ -95,6 +120,8 @@ const sendAutoButtonData = async (mode, type) => {
 
   console.log(phi1_history);
 
+  // console.log(phi1_history);
+
   const cb = (iter) => {
     if (iter >= phi1_history.length) return;
 
@@ -107,8 +134,8 @@ const sendAutoButtonData = async (mode, type) => {
       p3: phi3_history[iter].toFixed(3),
       p4: phi4_history[iter].toFixed(3),
     });
+    
     console.log(data);
-
     if (wsConnected.value) {
       api.sendWebSocketMessage(data);
     }
@@ -121,6 +148,7 @@ const sendAutoButtonData = async (mode, type) => {
 }
 
 onMounted(async () => {
+
   api.connectWebSocket("/controls");
   wsConnected.value = true;
 
@@ -166,22 +194,25 @@ onUnmounted(() => {
 
         <div class="grid grid-cols-3 grid-rows-3 gap-4 w-52 h-52" v-if="operationMode === OperationMode.BUTTONS_MANUAL">
           <IconButton icon="arrow.svg" altText="Example Icon" icon-transform="rotate(-45deg)"
-            @click="sendButtonData({ x: -0.71, y: 0.71 }, OperationMode.BUTTONS_MANUAL, JoystickMovementType.OMNIDIRECTIONAL, throttle)" />
+            @click="sendButtonData({ x: -_sqrt, y: _sqrt }, OperationMode.BUTTONS_MANUAL, JoystickMovementType.OMNIDIRECTIONAL, throttle)" />
           <IconButton icon="arrow.svg" altText="Example Icon"
             @click="sendButtonData({ x: 0, y: 1 }, OperationMode.BUTTONS_MANUAL, JoystickMovementType.OMNIDIRECTIONAL, throttle)" />
           <IconButton icon="arrow.svg" altText="Example Icon" icon-transform="rotate(45deg)"
-            @click="sendButtonData({ x: 0.71, y: 0.71 }, OperationMode.BUTTONS_MANUAL, JoystickMovementType.OMNIDIRECTIONAL, throttle)" />
+            @click="sendButtonData({ x: _sqrt, y: _sqrt }, OperationMode.BUTTONS_MANUAL, JoystickMovementType.OMNIDIRECTIONAL, throttle)" />
+
           <IconButton icon="arrow.svg" altText="Example Icon" icon-transform="rotate(-90deg)"
             @click="sendButtonData({ x: -1, y: 0 }, OperationMode.BUTTONS_MANUAL, JoystickMovementType.OMNIDIRECTIONAL, throttle)" />
           <IconButton icon="arrow.svg" altText="Example Icon" icon-transform="rotate(90deg)"
             class="col-start-3 col-end-4"
             @click="sendButtonData({ x: 1, y: 0 }, OperationMode.BUTTONS_MANUAL, JoystickMovementType.OMNIDIRECTIONAL, throttle)" />
           <IconButton icon="arrow.svg" altText="Example Icon" icon-transform="rotate(-135deg)"
-            @click="sendButtonData({ x: -0.71, y: -0.71 }, OperationMode.BUTTONS_MANUAL, JoystickMovementType.OMNIDIRECTIONAL, throttle)" />
+
+            @click="sendButtonData({ x: -_sqrt, y: -_sqrt }, OperationMode.BUTTONS_MANUAL, JoystickMovementType.OMNIDIRECTIONAL, throttle)" />
           <IconButton icon="arrow.svg" altText="Example Icon" icon-transform="rotate(180deg)"
             @click="sendButtonData({ x: 0, y: -1 }, OperationMode.BUTTONS_MANUAL, JoystickMovementType.OMNIDIRECTIONAL, throttle)" />
           <IconButton icon="arrow.svg" altText="Example Icon" icon-transform="rotate(135deg)"
-            @click="sendButtonData({ x: 0.71, y: -0.71 }, OperationMode.BUTTONS_MANUAL, JoystickMovementType.OMNIDIRECTIONAL, throttle)" />
+            @click="sendButtonData({ x: _sqrt, y: -_sqrt }, OperationMode.BUTTONS_MANUAL, JoystickMovementType.OMNIDIRECTIONAL, throttle)" />
+
           <button
             @click="sendButtonData({ x: 0, y: 0 }, OperationMode.BUTTONS_MANUAL, JoystickMovementType.OMNIDIRECTIONAL, throttle)">stop</button>
         </div>

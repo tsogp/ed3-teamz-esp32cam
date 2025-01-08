@@ -1,7 +1,7 @@
 #include "wifi.h"
 
-#define WIFI_SSID "POCO"
-#define WIFI_PASS "12345678"
+#define WIFI_SSID "@@@@"
+#define WIFI_PASS "khongcopass"
 #define MAXIMUM_RETRY 5
 
 static EventGroupHandle_t s_wifi_event_group;

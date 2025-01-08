@@ -54,7 +54,7 @@ class PathGen {
     const v3 = (1 / wheelR) * (vCarX + vCarY - (l + d) * vCarPhi);
     const v4 = (1 / wheelR) * (vCarX - vCarY + (l + d) * vCarPhi);
 
-    console.log(`vCarX: ${vCarX}, vCarY: ${vCarY}, vCarPhi: ${vCarPhi}`);
+    // console.log(`vCarX: ${vCarX}, vCarY: ${vCarY}, vCarPhi: ${vCarPhi}`);
 
     for (let i = 0; i < step; i++) {
       const dPhi = vCarPhi * dt;
@@ -146,7 +146,7 @@ class PathGen {
   //   return JSON.stringify(historyObject); // Pretty format with 2 spaces
   // }
 
-  selectPath(option, distance, signalDelay, stepPerOp) {
+  selectPath(option, distance, stepPerOp) {
     time_history = [0];
     x_history = [0];
     y_history = [0];

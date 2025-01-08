@@ -1,9 +1,9 @@
 import { AutoOperationMode } from "../types";
 
 // Constants
-const l = 0.5; // Distance between wheel pairs (m)
-const d = 0.5; // Distance between wheels along the axis (m)
-const wheelR = 0.097; 
+const l = 0.25; // Distance between wheel pairs (m)
+const d = 0.25; // Distance between wheels along the axis (m)
+const wheelR = 0.05; 
 
 // Inverse kinematics matrix
 const J_inv = [

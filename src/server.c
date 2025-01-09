@@ -6,7 +6,7 @@ static httpd_handle_t server = NULL;
 
 #define ASYNC_WORKER_TASK_PRIORITY 15
 #define CONFIG_EXAMPLE_MAX_ASYNC_REQUESTS 2
-#define ASYNC_WORKER_TASK_STACK_SIZE 8192
+#define ASYNC_WORKER_TASK_STACK_SIZE 10000
 
 static QueueHandle_t request_queue;
 static SemaphoreHandle_t worker_ready_count;

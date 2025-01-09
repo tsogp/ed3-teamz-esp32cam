@@ -26,12 +26,22 @@ const fps = ref(0);
 const handleStreamLoaded = () => {
   console.log("Picture stream loaded.");
   loading.value = false;
-}
+};
 
-const handleStreamError = () => {
-  console.error("Error loading the MJPEG stream.");
-  hasError.value = true;
-  loading.value = true;
+const handleStreamError = (event) => {
+  console.error("Error loading the MJPEG stream:", event);
+
+  if (event && event.message && event.message.includes("ERR_INVALID_CHUNKED_ENCODING")) {
+    console.error("Invalid chunked encoding detected. Reloading the page...");
+    window.location.reload();
+  } else {
+    hasError.value = true;
+    loading.value = true;
+    console.error("An unknown error occurred. Retrying...");
+    setTimeout(() => {
+      window.location.reload();
+    }, 1000);
+  }
 };
 
 onMounted(() => {

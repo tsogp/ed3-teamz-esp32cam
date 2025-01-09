@@ -24,7 +24,15 @@ static esp_err_t send_ping() {
 		.len = 4,
 	};
 
-	return httpd_ws_send_frame_async(ws_cfg.hd, ws_cfg.fd, &ws_pkt);
+	esp_err_t ret = ESP_OK;
+	if (ws_cfg.hd != NULL && ws_cfg.fd != -1) {
+		ret = httpd_ws_send_frame_async(ws_cfg.hd, ws_cfg.fd, &ws_pkt);
+		if (ret != ESP_OK) {
+			ESP_LOGE(TAG, "1Failed to send frame: %s; fd: %d", esp_err_to_name(ret), ws_cfg.fd);
+		}
+	}
+
+	return ret;
 }
 
 static void stop_ws_keepalive() {
@@ -95,7 +103,13 @@ static void ws_framerate_send(void *arg) {
 	ws_pkt.len = strlen(fps_buf);
 	ws_pkt.type = HTTPD_WS_TYPE_TEXT;
 
-	httpd_ws_send_frame_async(hd, fd, &ws_pkt);
+	if (hd != NULL && fd != -1) {
+		esp_err_t ret = httpd_ws_send_frame_async(hd, fd, &ws_pkt);
+		if (ret != ESP_OK) {
+			ESP_LOGE(TAG, "2Failed to send frame: %s, fd: %d", esp_err_to_name(ret), fd);
+		}
+	}
+
 	free(fps_arg);
 }
 

@@ -37,9 +37,16 @@ esp_err_t stream_jpg(httpd_req_t *req) {
 		_jpg_buf_len = fb->len;
 		_jpg_buf = fb->buf;
 
+		if (req == NULL) {
+			ESP_LOGE(TAG, "break");
+			continue;
+		}
+
 		if (res == ESP_OK) {
 			res = httpd_resp_send_chunk(req, _STREAM_BOUNDARY,
 						    strlen(_STREAM_BOUNDARY));
+		} else {
+			ESP_LOGE(TAG, "1chunk error %s", esp_err_to_name(res));
 		}
 
 		if (res == ESP_OK) {
@@ -47,18 +54,32 @@ esp_err_t stream_jpg(httpd_req_t *req) {
 					       _STREAM_PART, _jpg_buf_len);
 			res = httpd_resp_send_chunk(req, (const char *)part_buf,
 						    hlen);
+		} else {
+			ESP_LOGE(TAG, "2chunk error %s", esp_err_to_name(res));
 		}
 
 		if (res == ESP_OK) {
 			res = httpd_resp_send_chunk(req, (const char *)_jpg_buf,
 						    _jpg_buf_len);
+		} else {
+			ESP_LOGE(TAG, "3chunk error %s", esp_err_to_name(res));
 		}
 
 		esp_camera_fb_return(fb);
 
 		if (res != ESP_OK) {
-			break;
-		}
+            ESP_LOGE(TAG, "Error while streaming, closing connection.");
+            // Close the current connection
+            int sockfd = httpd_req_to_sockfd(req);
+            if (sockfd >= 0) {
+                ESP_LOGI(TAG, "Closing socket: %d", sockfd);
+                httpd_sess_trigger_close(req->handle, sockfd);
+            }
+
+            // Optionally, handle a reconnection or wait for the next client request
+            ESP_LOGI(TAG, "Waiting for a new client request...");
+            break;  // Break the loop after closing the connection
+        }
 
 		int64_t fr_end = esp_timer_get_time();
 		int64_t frame_time = fr_end - last_frame;

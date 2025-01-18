@@ -15,8 +15,8 @@ const AVAILABLE_KEYS = [
 
 const JOYSTICK_SIZE = 200;
 
-const BASE_COLOR = "black";
-const STICK_COLOR = "purple";
+const BASE_COLOR = "#007ee3";
+const STICK_COLOR = "#111827";
 
 export {
   JoystickMovementType,
